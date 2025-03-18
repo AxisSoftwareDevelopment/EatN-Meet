@@ -21,6 +21,7 @@ namespace eatMeet.Firestore
                 }
                 catch (Exception ex)
                 {
+                    Console.WriteLine(ex.Message);
                     retval = default;
                     retries++;
                 }
@@ -120,6 +121,7 @@ namespace eatMeet.Firestore
                         }
                         catch (Exception ex)
                         {
+                            Console.WriteLine(ex.Message);
                             retries++;
                             if (retries > 5)
                             {
@@ -213,6 +215,7 @@ namespace eatMeet.Firestore
                         }
                         catch (Exception ex)
                         {
+                            Console.WriteLine(ex.Message);
                             retries++;
                             if (retries > 5)
                             {

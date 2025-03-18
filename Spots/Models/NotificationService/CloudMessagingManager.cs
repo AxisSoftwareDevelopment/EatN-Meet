@@ -64,16 +64,16 @@ namespace eatMeet.CloudMessaging
 
         private PushNotification(
             PushNotificationType type,
-            IEnumerable<string> fcmTokens = null,
-            string topic = null,
-            string title = null,
-            string body = null)
+            IEnumerable<string>? fcmTokens = null,
+            string? topic = null,
+            string? title = null,
+            string? body = null)
         {
             Type = type;
-            FcmTokens = fcmTokens;
-            Topic = topic;
-            Title = title;
-            Body = body;
+            FcmTokens = fcmTokens?? [];
+            Topic = topic ?? "";
+            Title = title ?? "";
+            Body = body ?? "";
         }
 
         public string ToJson()

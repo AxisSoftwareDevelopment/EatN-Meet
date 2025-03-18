@@ -350,3 +350,6 @@ MigrationBackup/
 .ionide/
 
 Spots/Platforms/Android/AndroidManifest.xml
+
+AuthKey_72JZCZJYBF.p8
+*.p8

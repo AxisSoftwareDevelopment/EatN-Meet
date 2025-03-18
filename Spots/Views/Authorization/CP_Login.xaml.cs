@@ -51,7 +51,10 @@ public partial class CP_Login : ContentPage
                     // Check if the _user has updated its basic information yet
                     await UserInterface.DisplayPopUp_Regular("Welcome!", "Welcome to spots!", "OK");
 
-                    Application.Current.MainPage = new FP_MainShell(user);
+                    if (Application.Current != null)
+                    {
+                        Application.Current.Windows[0].Page = new FP_MainShell(user);
+                    }
                 }
                 else
                 {

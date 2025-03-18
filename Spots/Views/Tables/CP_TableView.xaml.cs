@@ -81,18 +81,22 @@ public partial class CP_TableView : ContentPage
 
     private async void _btnInteractWithTable_Clicked(object? sender, EventArgs e)
     {
-        bool userIsSitting = CachedTable.SittingMembers.Contains(SessionManager.CurrentSession?.Client?.UserID ?? "NULL");
-        if(userIsSitting)
+        string? userID = SessionManager.CurrentSession?.Client?.UserID;
+        if(userID != null)
         {
-            CachedTable.SittingMembers.Remove(SessionManager.CurrentSession?.Client?.UserID);
-        }
-        else
-        {
-            CachedTable.SittingMembers.Add(SessionManager.CurrentSession?.Client?.UserID);
-        }
-        ChangeSittingStateUI(!userIsSitting);
+            bool userIsSitting = CachedTable.SittingMembers.Contains(userID);
+            if (userIsSitting)
+            {
+                CachedTable.SittingMembers.Remove(userID);
+            }
+            else
+            {
+                CachedTable.SittingMembers.Add(userID);
+            }
+            ChangeSittingStateUI(!userIsSitting);
 
-        await RefreshMembersList();
+            await RefreshMembersList();
+        }
     }
 
     private async Task RefreshMembersList()
