@@ -1,0 +1,18 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <_CodesignBundle Include="eatMeet.app">
+      <CodesignSigningKey>688E4CF8ACB9B8FD3D19B243AE2D94316C45B73E</CodesignSigningKey>
+      <CodesignEntitlements>\Users\axissoftwaredevelopment\Library\Caches\Xamarin\mtbs\builds\eatMeet\624974a2836598af60a21de616d79868db5bba14726e838eca5b491bbe2d1e3b\obj\iPhone\Release\net9.0-ios\ios-arm64\Entitlements.xcent</CodesignEntitlements>
+      <CodesignUseSecureTimestamp></CodesignUseSecureTimestamp>
+      <CodesignAllocate>\Applications\Xcode.app\Contents\Developer\Toolchains\XcodeDefault.xctoolchain\usr\bin\codesign_allocate</CodesignAllocate>
+      <RequireCodeSigning>true</RequireCodeSigning>
+      <CodesignExtraArgs></CodesignExtraArgs>
+      <CodesignResourceRules></CodesignResourceRules>
+      <CodesignDisableTimestamp>false</CodesignDisableTimestamp>
+      <CodesignKeychain></CodesignKeychain>
+      <CodesignUseHardenedRuntime></CodesignUseHardenedRuntime>
+      <SourceProjectPath>C:\Repos\Spots\Spots</SourceProjectPath>
+    </_CodesignBundle>
+  </ItemGroup>
+</Project>
