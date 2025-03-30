@@ -45,8 +45,8 @@
 	</PropertyGroup>
 	<PropertyGroup Condition="'$(TargetFramework)'=='net9.0-ios'">
 	  <CodesignKey>Apple Distribution: GASTON TEJEDA (GK59P3HJTD)</CodesignKey>
-	  <CodesignProvision>eatMeetDeveloperProvisioningProfile</CodesignProvision>
-	  <ProvisioningType>automatic</ProvisioningType>
+	  <CodesignProvision>Provisioning Profile AppStore</CodesignProvision>
+	  <ProvisioningType>manual</ProvisioningType>
 	</PropertyGroup>
 
 	<ItemGroup>
