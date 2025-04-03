@@ -8,7 +8,7 @@
 		<string>$(AppIdentifierPrefix)com.axissoftwaredevelopment.eatMeet</string>
 	</array>
 	<key>aps-environment</key>
-	<string>production</string>
+	<string>development</string>
 
 </dict>
 </plist>

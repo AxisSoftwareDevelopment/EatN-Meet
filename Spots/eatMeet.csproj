@@ -44,9 +44,9 @@
 	  <ApplicationId>com.axissoftwaredevelopment.eatMeet</ApplicationId>
 	</PropertyGroup>
 	<PropertyGroup Condition="'$(TargetFramework)'=='net9.0-ios'">
-	  <CodesignKey>Apple Development: Created via API (72JZCZJYBF)</CodesignKey>
-	  <CodesignProvision>VS: com.axissoftwaredevelopment.eatMeet Development</CodesignProvision>
-	  <ProvisioningType>automatic</ProvisioningType>
+	  <CodesignKey>Apple Distribution: GASTON TEJEDA (GK59P3HJTD)</CodesignKey>
+	  <CodesignProvision>Provisioning Profile AppStore</CodesignProvision>
+	  <ProvisioningType>manual</ProvisioningType>
 	</PropertyGroup>
 
 	<ItemGroup>
