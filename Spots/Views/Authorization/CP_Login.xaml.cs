@@ -98,7 +98,8 @@ public partial class CP_Login : ContentPage
         }
         catch (Exception ex)
         {
-            await UserInterface.DisplayPopUp_Regular("Unhandled Error", ex.Message, "OK");
+            await UserInterface.DisplayPopUp_Regular("Unhandled Error", ex.Message + "\n" + ex.StackTrace, "OK");
+            await DatabaseManager.LogOutAsync(skipLocationUpdate: true);
         }
     }
 

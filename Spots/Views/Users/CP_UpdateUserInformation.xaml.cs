@@ -50,73 +50,84 @@ public partial class CP_UpdateUserInformation : ContentPage
 
     private async void SaveOnCLickAsync(object sender, EventArgs e)
     {
-        LockInputs();
-        if (Application.Current == null)
+        try
         {
-            return;
-        }
+            LockInputs();
 
-        Client newData = new()
-        {
-            FirstName = ToTitleCase(_entryFirstName.Text.Trim()),
-            LastName = ToTitleCase(_entryLastName.Text.Trim()),
-            Description = _editorDescription.Text.Trim(),
-            PhoneNumber = _entryPhoneNumber.Text,
-            PhoneCountryCode = _entryPhoneCountryCode.Text,
-            BirthDate = _dateBirthdate.Date
-        };
-        
-        if (ValidateFields(newData))
-        {
-            HideErrorSection();
-
-            string profilePictureAddress = "";
-            if (_userIsEmpty)
+            if (Application.Current == null)
             {
-                _user.Email = _email;
+                return;
             }
-            if(DataChanged(newData))
+
+            Client newData = new()
             {
-                _user.FirstName = newData.FirstName;
-                _user.LastName = newData.LastName;
-                if (_birhtdateSelected)
-                    _user.BirthDate = newData.BirthDate;
-                _user.PhoneNumber = newData.PhoneNumber;
-                _user.PhoneCountryCode = newData.PhoneCountryCode;
-                _user.Description = newData.Description;
-                if (_profilePictureChanged && _profilePictureFile != null)
+                FirstName = ToTitleCase(_entryFirstName.Text.Trim()),
+                LastName = ToTitleCase(_entryLastName.Text.Trim()),
+                Description = _editorDescription.Text.Trim(),
+                PhoneNumber = _entryPhoneNumber.Text,
+                PhoneCountryCode = _entryPhoneCountryCode.Text,
+                BirthDate = _dateBirthdate.Date
+            };
+            
+            if (ValidateFields(newData))
+            {
+                HideErrorSection();
+
+                string profilePictureAddress = "";
+                if (_userIsEmpty)
                 {
-                    profilePictureAddress = await DatabaseManager.SaveFile($"Users/{_user.UserID}", "ProfilePicture", _profilePictureFile);
-                    _user.ProfilePictureSource = ImageSource.FromStream(() => ImageManagement.ByteArrayToStream(_profilePictureFile.Bytes?? []));
+                    _user.Email = _email;
                 }
-
-                if (await DatabaseManager.SaveUserDataAsync(_user, profilePictureAddress))
+                if(DataChanged(newData))
                 {
-                    await UserInterface.DisplayPopUp_Regular("Success", "Your information has been updated. Way to go!", "OK");
-                    // If the business was empty, it meas we came from the log in.
-                    if (_userIsEmpty)
+                    _user.FirstName = newData.FirstName;
+                    _user.LastName = newData.LastName;
+                    if (_birhtdateSelected)
+                        _user.BirthDate = newData.BirthDate;
+                    _user.PhoneNumber = newData.PhoneNumber;
+                    _user.PhoneCountryCode = newData.PhoneCountryCode;
+                    _user.Description = newData.Description;
+                    if (_profilePictureChanged && _profilePictureFile != null)
                     {
-                        // We then have to log in and go to main page.
-                        await DatabaseManager.LogInUserAsync(_email, _password, getUser: false);
-                        Application.Current.Windows[0].Page = new FP_MainShell(_user);
+                        profilePictureAddress = await DatabaseManager.SaveFile($"Users/{_user.UserID}", "ProfilePicture", _profilePictureFile);
+                        _user.ProfilePictureSource = ImageSource.FromStream(() => ImageManagement.ByteArrayToStream(_profilePictureFile.Bytes?? []));
                     }
-                    else
-                    {
-                        // If the business was just updating information, then we just pop the page from navigation
-                        SessionManager.CurrentSession?.UpdateUserData(_user);
 
-                        await Navigation.PopAsync();
+                    if (await DatabaseManager.SaveUserDataAsync(_user, profilePictureAddress))
+                    {
+                        await UserInterface.DisplayPopUp_Regular("Success", "Your information has been updated. Way to go!", "OK");
+                        // If the business was empty, it meas we came from the log in.
+                        if (_userIsEmpty)
+                        {
+                            // We then have to log in and go to main page.
+                            await DatabaseManager.LogInUserAsync(_email, _password, getUser: false);
+                            Application.Current.Windows[0].Page = new FP_MainShell(_user);
+                        }
+                        else
+                        {
+                            // If the business was just updating information, then we just pop the page from navigation
+                            SessionManager.CurrentSession?.UpdateUserData(_user);
+
+                            await Navigation.PopAsync();
+                        }
                     }
                 }
-            }
-            else
-            {
-                // If the business was updating information, but didnt change any data, we do nothing
-                await UserInterface.DisplayPopUp_Regular("Alert", "No information was changed", "OK");
-                await Navigation.PopAsync();
+                else
+                {
+                    // If the business was updating information, but didnt change any data, we do nothing
+                    await UserInterface.DisplayPopUp_Regular("Alert", "No information was changed", "OK");
+                    await Navigation.PopAsync();
+                }
             }
         }
-        UnlockInputs();
+        catch (Exception ex)
+        {
+            await UserInterface.DisplayPopUp_Regular("Unhandled Error", ex.Message + "\n" + ex.StackTrace, "OK");
+        }
+        finally
+        {
+            UnlockInputs();
+        }
     }
 
     public async void LoadImageOnClickAsync(object sender, EventArgs e)
