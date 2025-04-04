@@ -41,13 +41,13 @@ public static class DatabaseManager
 
         if (!iFUser.IsEmailVerified)
         {
+            await CrossFirebaseAuth.Current.SignOutAsync();
             throw new FirebaseAuthException(FIRAuthError.UserDisabled, "Custon Exception -> Email not verified.");
         }
 
         Client user = await GetClientDataAsync(iFUser.Uid);
         if (!user.UserDataRetrieved)
         {
-            await LogOutAsync(skipLocationUpdate: true);
             return user;
         }
 
@@ -97,6 +97,11 @@ public static class DatabaseManager
             if (CrossFirebaseAuth.Current.CurrentUser != null)
             {
                 Client user = await GetClientDataAsync(CrossFirebaseAuth.Current.CurrentUser.Uid);
+                if(!user.UserDataRetrieved)
+                {
+                    await CrossFirebaseAuth.Current.SignOutAsync();
+                    return false;
+                }
                 await SessionManager.StartSessionAsync(user);
                 await UpdateCurrentUserFCMToken();
                 return true;
