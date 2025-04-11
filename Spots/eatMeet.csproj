@@ -26,7 +26,7 @@
 		<ApplicationId>com.axissoftwaredevelopment.eatMeet</ApplicationId>
 
 		<!-- Versions -->
-		<ApplicationDisplayVersion>1.0</ApplicationDisplayVersion>
+		<ApplicationDisplayVersion>1.0.4</ApplicationDisplayVersion>
 		<ApplicationVersion>1</ApplicationVersion>
 
 		<SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'ios'">12.2</SupportedOSPlatformVersion>
@@ -36,17 +36,25 @@
 	<!-- iOS Services -->
 	<PropertyGroup Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'ios'">
         <CodesignEntitlements>Platforms\iOS\Entitlements.plist</CodesignEntitlements>
-    </PropertyGroup>
+	</PropertyGroup>
 	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net9.0-android|AnyCPU'">
 	  <ApplicationId>com.axissoftwaredevelopment.eatMeet</ApplicationId>
+	  <DebugType>portable</DebugType>
 	</PropertyGroup>
 	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net9.0-android|AnyCPU'">
 	  <ApplicationId>com.axissoftwaredevelopment.eatMeet</ApplicationId>
+	  <DebugType>portable</DebugType>
 	</PropertyGroup>
 	<PropertyGroup Condition="'$(TargetFramework)'=='net9.0-ios'">
 	  <CodesignKey>Apple Distribution: GASTON TEJEDA (GK59P3HJTD)</CodesignKey>
 	  <CodesignProvision>Provisioning Profile AppStore</CodesignProvision>
 	  <ProvisioningType>manual</ProvisioningType>
+	</PropertyGroup>
+	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net9.0-ios|AnyCPU'">
+	  <DebugType>portable</DebugType>
+	</PropertyGroup>
+	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net9.0-ios|AnyCPU'">
+	  <DebugType>portable</DebugType>
 	</PropertyGroup>
 
 	<ItemGroup>
