@@ -32,8 +32,7 @@
                                                 <Image Source="{Binding ProfilePictureSource}" HeightRequest="50" WidthRequest="50" BackgroundColor="{DynamicResource Primary}"/>
                                                 <StackLayout Orientation="Vertical" HorizontalOptions="FillAndExpand" Margin="5,5">
                                                     <Label Text="{Binding SpotName}" FontSize="Medium" FontAttributes="Bold" TextColor="{DynamicResource SecondaryAccent}" MaxLines="2"/>
-                                                    <Label Text="{Binding BrandName}" FontSize="Small" FontAttributes="Italic" HorizontalTextAlignment="End" TextColor="{DynamicResource Tertiary}" MaxLines="1"/>
-                                                    <Label Text="{Binding Location.Address}" FontSize="Micro" LineBreakMode="WordWrap" TextColor="{DynamicResource SecondaryAccent}" MaxLines="2"/>
+                                                    <Label Text="{Binding Location.Address}" FontSize="Small" LineBreakMode="WordWrap" TextColor="{DynamicResource SecondaryAccent}" MaxLines="2"/>
                                                 </StackLayout>
                                             </StackLayout>
                                         </Border>

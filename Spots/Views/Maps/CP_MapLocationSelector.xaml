@@ -11,12 +11,9 @@
 
     <StackLayout>
         <maps:Map x:Name="_cvMap" HorizontalOptions="FillAndExpand" VerticalOptions="FillAndExpand" Margin="5,5,5,0"/>
-        <StackLayout Orientation="Horizontal" Margin="25,5">
-            <Editor x:Name="_editorAddress" Placeholder="{DynamicResource lbl_AddressPlaceholder}" HorizontalOptions="FillAndExpand" AutoSize="TextChanges"/>
-            <Label Text=" *" VerticalOptions="Center" FontAttributes="Bold" TextColor="{DynamicResource ErrorAccent}"/>
+        <StackLayout Orientation="Horizontal" Margin="25,15">
+            <Label x:Name="_lblAddress" HorizontalOptions="FillAndExpand" HorizontalTextAlignment="Center" TextColor="{DynamicResource Tertiary}"/>
         </StackLayout>
-        <Button x:Name="_btnReturnLocation" Text="{DynamicResource lbl_Save}" Margin="75,0,75,5"
-                BackgroundColor="{DynamicResource Primary}" TextColor="{DynamicResource PrimaryAccent}"/>
     </StackLayout>
 
 </ContentPage>

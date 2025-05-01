@@ -28,26 +28,36 @@
                         </StackLayout>
                         <!-- Brand Name -->
                         <StackLayout Orientation="Horizontal">
-                            <Label Text="{DynamicResource lbl_BrandName}" TextColor="{DynamicResource SecondaryAccent}" HorizontalOptions="Center" HorizontalTextAlignment="Center"
+                            <Label Text="{DynamicResource lbl_SpotName}" TextColor="{DynamicResource SecondaryAccent}" HorizontalOptions="Center" HorizontalTextAlignment="Center"
                                 Margin="0,20,0,0"/>
                             <Label Text=" *" VerticalOptions="Center" FontAttributes="Bold" TextColor="{DynamicResource ErrorAccent}" Margin="0,20,0,0"/>
                         </StackLayout>
-                        <Entry x:Name="_entryBrandName" Placeholder="{DynamicResource lbl_BrandName}" HorizontalOptions="FillAndExpand" 
-                            Keyboard="Email" ReturnType="Next"/>
-                        <!-- Business Name -->
-                        <StackLayout Orientation="Horizontal">
-                            <Label Text="{DynamicResource lbl_BusinessName}" TextColor="{DynamicResource SecondaryAccent}" HorizontalOptions="Center" HorizontalTextAlignment="Center"/>
-                            <Label Text=" *" VerticalOptions="Center" FontAttributes="Bold" TextColor="{DynamicResource ErrorAccent}"/>
-                        </StackLayout>
-                        <Entry x:Name="_entryBusinessName" Placeholder="{DynamicResource lbl_BusinessName}" HorizontalOptions="FillAndExpand" 
-                            Keyboard="Email" ReturnType="Next"/>
+                        <Entry x:Name="_entryName" Placeholder="{DynamicResource lbl_SpotName}" HorizontalOptions="FillAndExpand" 
+                            Keyboard="Text" ReturnType="Next"/>
                         <!-- Location -->
                         <StackLayout Orientation="Horizontal">
                             <Label Text="Location" TextColor="{DynamicResource SecondaryAccent}" HorizontalOptions="Center" HorizontalTextAlignment="Center"/>
                             <Label Text=" *" VerticalOptions="Center" FontAttributes="Bold" TextColor="{DynamicResource ErrorAccent}"/>
                         </StackLayout>
-                        <maps:Map x:Name="_cvMiniMap" HorizontalOptions="FillAndExpand" VerticalOptions="FillAndExpand" Margin="15,15,15,15" IsZoomEnabled="False" IsScrollEnabled ="False"/>
                         <Entry x:Name="_entryAddress" Placeholder="{DynamicResource lbl_AddressPlaceholder}" TextColor="{DynamicResource SecondaryAccent}"/>
+                        <Border x:Name="_borderSearchBarResults" StrokeShape="RoundRectangle 10" BackgroundColor="{DynamicResource Primary}">
+                            <CollectionView x:Name="_colSearchBarResults" HorizontalOptions="FillAndExpand" ItemsSource="{Binding ItemSource}" SelectionMode="Single" Margin="0,3,0,0">
+                                <CollectionView.ItemTemplate>
+                                    <DataTemplate>
+                                        <ContentView>
+                                            <Border Margin="5, 0, 5, 5" StrokeShape="RoundRectangle 5,5,5,5" HorizontalOptions="FillAndExpand" VerticalOptions="FillAndExpand" BackgroundColor="{DynamicResource Secondary}">
+                                                <StackLayout Orientation="Vertical" HorizontalOptions="FillAndExpand" Margin="5,5">
+                                                    <Label Text="{Binding Address}" FontSize="Medium" FontAttributes="Bold" TextColor="{DynamicResource SecondaryAccent}" MaxLines="2"/>
+                                                    <Label Text="{Binding LocationString}" FontSize="Micro" LineBreakMode="WordWrap" TextColor="{DynamicResource Tertiary}" MaxLines="2"/>
+                                                </StackLayout>
+                                            </Border>
+                                        </ContentView>
+                                    </DataTemplate>
+                                </CollectionView.ItemTemplate>
+                            </CollectionView>
+                        </Border>
+                        <maps:Map x:Name="_cvMiniMap" HorizontalOptions="FillAndExpand" VerticalOptions="FillAndExpand" Margin="15,15,15,15" IsZoomEnabled="False" IsScrollEnabled ="False"/>
+                        <Label x:Name="_lblSelectedAdress" Text="{DynamicResource lbl_AddressPlaceholder}" TextColor="{DynamicResource Tertiary}" HorizontalOptions="FillAndExpand" HorizontalTextAlignment="Center"/>
                         <!-- User Description -->
                         <Label Text="{DynamicResource lbl_DescriptionField}" TextColor="{DynamicResource SecondaryAccent}" HorizontalOptions="FillAndExpand" HorizontalTextAlignment="Start"/>
                         <Editor x:Name="_editorDescription" Placeholder="{DynamicResource lbl_Description}" HorizontalOptions="FillAndExpand" AutoSize="TextChanges"/>

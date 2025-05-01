@@ -13,7 +13,7 @@
     <ContentPage.Content>
         <StackLayout Orientation="Vertical">
             <Border x:Name="_frameSearchBar"  StrokeShape="RoundRectangle 15" VerticalOptions="Start" BackgroundColor="{DynamicResource Secondary}" Margin="10,0,10,0">
-                <Entry x:Name="_entrySearchTerms" Margin="5"/>
+                <SearchBar x:Name="_entrySearchTerms"/>
             </Border>
 
             <!-- Search Objective Selector -->

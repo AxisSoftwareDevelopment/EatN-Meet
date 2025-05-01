@@ -40,10 +40,12 @@
 	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net9.0-android|AnyCPU'">
 	  <ApplicationId>com.axissoftwaredevelopment.eatMeet</ApplicationId>
 	  <DebugType>portable</DebugType>
+	  <ApplicationDisplayVersion>1.0.6</ApplicationDisplayVersion>
 	</PropertyGroup>
 	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net9.0-android|AnyCPU'">
 	  <ApplicationId>com.axissoftwaredevelopment.eatMeet</ApplicationId>
 	  <DebugType>portable</DebugType>
+	  <ApplicationDisplayVersion>1.0.6</ApplicationDisplayVersion>
 	</PropertyGroup>
 	<PropertyGroup Condition="'$(TargetFramework)'=='net9.0-ios'">
 	  <CodesignKey>Apple Distribution: GASTON TEJEDA (GK59P3HJTD)</CodesignKey>
@@ -52,9 +54,11 @@
 	</PropertyGroup>
 	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net9.0-ios|AnyCPU'">
 	  <DebugType>portable</DebugType>
+	  <ApplicationDisplayVersion>1.0.6</ApplicationDisplayVersion>
 	</PropertyGroup>
 	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net9.0-ios|AnyCPU'">
 	  <DebugType>portable</DebugType>
+	  <ApplicationDisplayVersion>1.0.6</ApplicationDisplayVersion>
 	</PropertyGroup>
 
 	<ItemGroup>

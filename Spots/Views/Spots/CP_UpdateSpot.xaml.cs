@@ -16,6 +16,8 @@ public partial class CP_UpdateSpot : ContentPage
     private bool _profilePictureChanged = false;
     private bool _locationChanged = false;
     private ImageFile? _profilePictureFile = null;
+    private readonly FeedContext<ListItemAddress> SearchBoxContext = new();
+    private readonly Action<string?> DebouncedSearch;
 
     public CP_UpdateSpot(Spot? spot = null)
     {
@@ -34,6 +36,25 @@ public partial class CP_UpdateSpot : ContentPage
             _cvMiniMap.Pins.Add(new Pin() { Label = "", Location = LocationManager.CurrentLocation });
         }
 
+        _colSearchBarResults.BindingContext = SearchBoxContext;
+        _colSearchBarResults.MaximumHeightRequest = profilePictureDimensions * 1;
+        _colSearchBarResults.SelectionChanged += _colSearchBarResults_SelectionChanged;
+
+        DebouncedSearch = DebounceHelper.Debounce<string?>(async (searchText) =>
+        {        
+            await RefreshSearchResults(searchText);
+
+            // Show or hide the search results frame
+            MainThread.BeginInvokeOnMainThread(() =>
+            {
+                _colSearchBarResults.IsVisible = !string.IsNullOrEmpty(searchText) && SearchBoxContext.ItemSource.Count > 0;
+            });
+        });
+        _entryAddress.TextChanged += (sender, e) =>
+        {
+            DebouncedSearch(e.NewTextValue);
+        };
+
         _FrameProfilePicture.HeightRequest = profilePictureDimensions;
         _FrameProfilePicture.WidthRequest = profilePictureDimensions;
         _cvMiniMap.HeightRequest = profilePictureDimensions * 0.75;
@@ -42,21 +63,45 @@ public partial class CP_UpdateSpot : ContentPage
         InitializeControllers();
     }
 
+    private void _colSearchBarResults_SelectionChanged(object? sender, SelectionChangedEventArgs e)
+    {
+        LoadSelectedAddress((ListItemAddress)e.CurrentSelection[0]);
+    }
+
+    private void LoadSelectedAddress(ListItemAddress itemAddress)
+    {
+        _lblSelectedAdress.Text = itemAddress.Address;
+        _cvMiniMap.Pins.Clear();
+        _cvMiniMap.MoveToRegion(new MapSpan(itemAddress.Location, 0.01, 0.01));
+        _cvMiniMap.Pins.Add(new Pin() { Label = "", Location = itemAddress.Location });
+    }
+
+    private async Task RefreshSearchResults(string? searchInput)
+    {
+        try
+        {
+            if ((searchInput?.Length ?? 0) > 0)
+            {
+                List<ListItemAddress> adreesses = await LocationManager.GetAddressesFromAddress(searchInput ?? "");
+                SearchBoxContext.RefreshFeed(adreesses);
+            }
+            else
+            {
+                SearchBoxContext.RefreshFeed([]);
+            }
+        }
+        catch (Exception ex)
+        {
+            await UserInterface.DisplayPopUp_Regular("Unhandled Error", ex.Message, "OK");
+        }
+    }
+
     private void _cvMiniMap_MapClicked(object? sender, MapClickedEventArgs e)
     {
         if (!_inputsAreLocked)
         {
-            Navigation.PushAsync(new CP_MapLocationSelector(() => _cvMiniMap.VisibleRegion, SetMiniMapVisibleArea, _entryAddress.Text ?? ""));
+            Navigation.PushAsync(new CP_MapLocationSelector(() => _cvMiniMap.VisibleRegion, _lblSelectedAdress.Text ?? ""));
         }
-    }
-
-    private void SetMiniMapVisibleArea(MapSpan mapSpan, string address)
-    {
-        _locationChanged = true;
-        _cvMiniMap.MoveToRegion(mapSpan);
-        _cvMiniMap.Pins.Clear();
-        _cvMiniMap.Pins.Add(new Pin() { Label = address, Location = mapSpan.Center });
-        _entryAddress.Text = address;
     }
 
     private void SkipOnClick(object sender, EventArgs e)
@@ -74,9 +119,8 @@ public partial class CP_UpdateSpot : ContentPage
 
         Spot newData = new Spot()
         {
-            BrandName = ToTitleCase(_entryBrandName.Text.Trim()),
-            SpotName = ToTitleCase(_entryBusinessName.Text.Trim()),
-            Location = new FirebaseLocation(_entryAddress.Text.Trim(), 0, 0),
+            Name = ToTitleCase(_entryName.Text.Trim()),
+            Location = new FirebaseLocation(_lblSelectedAdress.Text.Trim(), 0, 0),
             Description = _editorDescription.Text.Trim(),
             PhoneNumber = _entryPhoneNumber.Text,
             PhoneCountryCode = _entryPhoneCountryCode.Text
@@ -91,8 +135,7 @@ public partial class CP_UpdateSpot : ContentPage
                 //string profilePictureAddress = "";
                 _spot.PhoneNumber = newData.PhoneNumber;
                 _spot.PhoneCountryCode = newData.PhoneCountryCode;
-                _spot.BrandName = newData.BrandName;
-                _spot.SpotName = newData.SpotName;
+                _spot.Name = newData.Name;
                 _spot.Description = newData.Description;
                 Location locationSelected = _cvMiniMap.Pins[0].Location;
                 _spot.Location = new FirebaseLocation(newData.Location.Address, locationSelected.Latitude, locationSelected.Longitude);
@@ -132,8 +175,7 @@ public partial class CP_UpdateSpot : ContentPage
     private void InitializeControllers()
     {
         // Load _spot data
-        _entryBrandName.Text = _spot.BrandName;
-        _entryBusinessName.Text = _spot.SpotName;
+        _entryName.Text = _spot.Name;
         _editorDescription.Text = _spot.Description;
         _ProfileImage.Source = _spot.ProfilePictureSource;
         _entryAddress.Text = _spot.Location.Address;
@@ -150,8 +192,7 @@ public partial class CP_UpdateSpot : ContentPage
 
     private bool ValidateFields(Spot business)
     {
-        bool thereAreEmptyFields = business.BrandName.Length == 0 ||
-                            business.SpotName.Length == 0 ||
+        bool thereAreEmptyFields = business.Name.Length == 0 ||
                             business.Location.Address.Length == 0;
         bool validLocationSelected = _cvMiniMap.Pins.Count == 1;
         bool descriptionUnder150Chars = business.Description.Length <= 150;
@@ -195,9 +236,7 @@ public partial class CP_UpdateSpot : ContentPage
             return true;
         if (_locationChanged)
             return true;
-        if (_spot.BrandName != business.BrandName)
-            return true;
-        if (_spot.SpotName != business.SpotName)
+        if (_spot.Name != business.Name)
             return true;
         if (_spot.Description != business.Description)
             return true;
@@ -233,8 +272,7 @@ public partial class CP_UpdateSpot : ContentPage
         _btnSave.IsEnabled = false;
         _editorDescription.IsEnabled = false;
         _entryAddress.IsEnabled = false;
-        _entryBrandName.IsEnabled = false;
-        _entryBusinessName.IsEnabled = false;
+        _entryName.IsEnabled = false;
         _entryPhoneCountryCode.IsEnabled = false;
         _entryPhoneNumber.IsEnabled = false;
         _inputsAreLocked = true;
@@ -246,8 +284,7 @@ public partial class CP_UpdateSpot : ContentPage
         _btnSave.IsEnabled = true;
         _editorDescription.IsEnabled = true;
         _entryAddress.IsEnabled = true;
-        _entryBrandName.IsEnabled = true;
-        _entryBusinessName.IsEnabled = true;
+        _entryName.IsEnabled = true;
         _entryPhoneCountryCode.IsEnabled = true;
         _entryPhoneNumber.IsEnabled = true;
         _inputsAreLocked = false;

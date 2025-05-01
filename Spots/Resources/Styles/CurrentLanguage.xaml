@@ -49,8 +49,7 @@
     <x:String x:Key="lbl_BusinessMode">Business Mode</x:String> <!-- Label that indicates business mode -->
     <x:String x:Key="lbl_UserMode">User Mode</x:String> <!-- Label that indicates User mode -->
     <x:String x:Key="lbl_BusinessLogIn">Business Log In</x:String> <!-- Label that indicates business Log in -->
-    <x:String x:Key="lbl_BusinessName">Business Name</x:String> <!-- Label that indicates business Name -->
-    <x:String x:Key="lbl_BrandName">Brand Name</x:String> <!-- Label that indicates business Brand Name -->
+    <x:String x:Key="lbl_SpotName">Spot Name</x:String> <!-- Label that indicates business Name -->
     <x:String x:Key="lbl_Language">Language</x:String> <!-- Label that indicates application language -->
     <x:String x:Key="lbl_Theme">App Theme</x:String> <!-- Label that indicates aplication theme -->
     <x:String x:Key="lbl_Apply">Apply</x:String> <!-- Label that indicates Apply changes -->
@@ -66,7 +65,6 @@
     <x:String x:Key="lbl_WriteSpotReview">Write Spot Review</x:String> <!-- Label that indicates an Error-->
     <x:String x:Key="lbl_SpotSearchBar">Spot</x:String> <!-- Label that indicates business Brand Name -->
     <x:String x:Key="lbl_Brand">Profile Picture:</x:String> <!-- Label that indicates the profile picture field -->
-    <x:String x:Key="lbl_SpotName">Spot Name</x:String> <!-- Label that indicates business Brand Name -->
     <x:String x:Key="lbl_AddReviewComment">Add a comment:</x:String> <!-- Label that indicates the profile picture field -->
     <x:String x:Key="lbl_YourComment">Your Comment</x:String> <!-- Label that indicates Your Comment -->
     <x:String x:Key="lbl_Edit">Edit</x:String> <!-- Label that indicates Edition -->

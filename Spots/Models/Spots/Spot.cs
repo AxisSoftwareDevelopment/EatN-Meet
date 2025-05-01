@@ -10,8 +10,7 @@ public class Spot : INotifyPropertyChanged
 
     #region Private Parameters
     private string? _SpotID;
-    private string? _brandName;
-    private string? _businessName;
+    private string? _Name;
     private ImageSource? _profilePictureSource;
     private string? _phoneNumber;
     private string? _phoneCountryCode;
@@ -45,25 +44,15 @@ public class Spot : INotifyPropertyChanged
     }
     public string FullName
     {
-        get => BrandName + " - " + SpotName;
+        get => Name + " - " + Location.Address;
     }
-    public string BrandName
+    public string Name
     {
-        get => _brandName ?? "";
+        get => _Name ?? "";
         set
         {
-            _brandName = value.Equals("") ? null : value;
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(BrandName)));
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(FullName)));
-        }
-    }
-    public string SpotName
-    {
-        get => _businessName ?? "";
-        set
-        {
-            _businessName = value.Equals("") ? null : value;
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(SpotName)));
+            _Name = value.Equals("") ? null : value;
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Name)));
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(FullName)));
         }
     }
@@ -127,8 +116,7 @@ public class Spot : INotifyPropertyChanged
 
     public Spot()
     {
-        BrandName = "";
-        SpotName = "";
+        Name = "";
         PhoneCountryCode = "";
         PhoneNumber = "";
         Description = "";
@@ -136,12 +124,11 @@ public class Spot : INotifyPropertyChanged
         PraiseCount = 0;
     }
 
-    public Spot(string userID, string brandName, string businessName, ImageSource? profilePictureSource = null,
+    public Spot(string userID, string name, ImageSource? profilePictureSource = null,
         string phoneNumber = "", string phoneCountryCode = "", string description = "", FirebaseLocation? location = null, int? praiseCount = null)
     {
         SpotID = userID;
-        BrandName = brandName;
-        SpotName = businessName;
+        Name = name;
         ProfilePictureSource = profilePictureSource ?? ImageSource.FromFile("logolong.png");
         PhoneNumber = phoneNumber;
         PhoneCountryCode = phoneCountryCode;
@@ -153,8 +140,7 @@ public class Spot : INotifyPropertyChanged
     public Spot(Spot_Firebase spotData, ImageSource profilePictureSource)
     {
         SpotID = spotData.SpotID;
-        BrandName = spotData.BrandName;
-        SpotName = spotData.SpotName;
+        Name = spotData.Name;
         ProfilePictureSource = profilePictureSource;
         PhoneNumber = spotData.PhoneNumber;
         PhoneCountryCode = spotData.PhoneCountryCode;
@@ -165,8 +151,7 @@ public class Spot : INotifyPropertyChanged
 
     public void UpdateUserData(Spot userData)
     {
-        BrandName = userData.BrandName;
-        SpotName = userData.SpotName;
+        Name = userData.Name;
         ProfilePictureSource = userData.ProfilePictureSource;
         PhoneNumber = userData.PhoneNumber;
         PhoneCountryCode = userData.PhoneCountryCode;
@@ -195,10 +180,8 @@ public class Spot_Firebase
 {
     [FirestoreDocumentId]
     public string SpotID { get; set; }
-    [FirestoreProperty(nameof(BrandName))]
-    public string BrandName { get; set; }
-    [FirestoreProperty(nameof(SpotName))]
-    public string SpotName { get; set; }
+    [FirestoreProperty(nameof(Name))]
+    public string Name { get; set; }
     [FirestoreProperty(nameof(PhoneNumber))]
     public string PhoneNumber { get; set; }
     [FirestoreProperty(nameof(PhoneCountryCode))]
@@ -215,8 +198,7 @@ public class Spot_Firebase
     public IList<string> SearchTerms { get; set; }
 
     public Spot_Firebase(string spotID,
-        string brandName,
-        string businessName,
+        string name,
         string phoneNumber,
         string phoneCountryCode,
         string description,
@@ -226,8 +208,7 @@ public class Spot_Firebase
         List<string> searchTerms)
     {
         SpotID = spotID;
-        BrandName = brandName;
-        SpotName = businessName;
+        Name = name;
         PhoneNumber = phoneNumber;
         PhoneCountryCode = phoneCountryCode;
         Description = description;
@@ -240,8 +221,7 @@ public class Spot_Firebase
     public Spot_Firebase()
     {
         SpotID = "";
-        BrandName = "";
-        SpotName = "";
+        Name = "";
         PhoneNumber = "";
         PhoneCountryCode = "";
         Description = "";
@@ -254,23 +234,23 @@ public class Spot_Firebase
     public Spot_Firebase(Spot spotData, string profilePictureAddress)
     {
         SpotID = spotData.SpotID;
-        BrandName = spotData.BrandName;
-        SpotName = spotData.SpotName;
+        Name = spotData.Name;
         PhoneNumber = spotData.PhoneNumber;
         PhoneCountryCode = spotData.PhoneCountryCode;
         Description = spotData.Description;
         Location = spotData.Location;
         ProfilePictureAddress = profilePictureAddress;
         PraiseCount = spotData.PraiseCount;
-        SearchTerms = GenerateSearchTerms(BrandName, SpotName);
+        string curatedAddress = Location.Address.Trim([' ', ',', '#']);
+        SearchTerms = GenerateSearchTerms(Name, curatedAddress);
     }
 
-    private List<string> GenerateSearchTerms(string brandName, string spotName)
+    private List<string> GenerateSearchTerms(string spotName, string address)
     {
         List<string> retVal = [];
         List<string> composedTerms = [];
 
-        foreach (string word in brandName.Split(' ').Concat(spotName.Split(' ')))
+        foreach (string word in spotName.Split(' ').Concat(address.Split(' ')))
         {
             string currentTerm = "";
             foreach (char letter in word)

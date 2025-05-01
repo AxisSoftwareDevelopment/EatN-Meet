@@ -16,9 +16,9 @@
                     <Border x:Name="_FrameProfilePicture" Padding="0" Margin="15,15,15,0" StrokeShape="RoundRectangle 500" StrokeThickness="0">
                         <ImageButton x:Name="_ProfileImage" Aspect="AspectFill" Source="{Binding ProfilePictureSource}"/>
                     </Border>
-                    <Label Text="{Binding BusinessName}" HorizontalOptions="Center" TextColor="{DynamicResource SecondaryAccent}" 
+                    <Label Text="{Binding Name}" HorizontalOptions="Center" TextColor="{DynamicResource SecondaryAccent}" 
                     FontAttributes="Bold" FontSize="25" VerticalOptions="Start" HorizontalTextAlignment="Center" Margin="20,0,20,0"/>
-                    <Label Text="{Binding BrandName}" HorizontalOptions="Center" TextColor="{DynamicResource SecondaryAccent}" 
+                    <Label Text="{Binding Location.Address}" HorizontalOptions="Center" TextColor="{DynamicResource SecondaryAccent}" 
                     FontSize="15" VerticalOptions="Start" HorizontalTextAlignment="Center" Margin="20,0,20,0"/>
                 </StackLayout>
 

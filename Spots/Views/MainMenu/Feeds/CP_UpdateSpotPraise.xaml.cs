@@ -10,6 +10,7 @@ public partial class CP_UpdateSpotPraise : ContentPage
 	private SpotPraise? MainSpotPraise;
     private readonly FeedContext<Spot> SearchBoxContext = new();
     private ImageFile? _AttachmentFile;
+    private readonly Action<string?> DebouncedSearch;
     public CP_UpdateSpotPraise(SpotPraise? spotPraise = null)
 	{
         DisplayInfo displayInfo = DeviceDisplay.MainDisplayInfo;
@@ -22,7 +23,21 @@ public partial class CP_UpdateSpotPraise : ContentPage
         _colSearchBarCollectionView.BindingContext = SearchBoxContext;
         _colSearchBarCollectionView.MaximumHeightRequest = profilePictureDimensions * 2;
         _colSearchBarCollectionView.SelectionChanged += _colSearchBarCollectionView_SelectionChanged;
-        _entrySpotSearchBar.TextChanged += _entrySpotSearchBar_TextChanged;
+
+        DebouncedSearch = DebounceHelper.Debounce<string?>(async (searchText) =>
+        {
+            await RefreshSearchResults(searchText);
+
+            // Show or hide the search results frame
+            MainThread.BeginInvokeOnMainThread(() =>
+            {
+                _colSearchBarCollectionView.IsVisible = !string.IsNullOrEmpty(searchText) && SearchBoxContext.ItemSource.Count > 0;
+            });
+        });
+        _entrySpotSearchBar.TextChanged += (sender, e) =>
+        {
+            DebouncedSearch(e.NewTextValue);
+        };
 
         _FrameSpotPicture.HeightRequest = profilePictureDimensions;
         _FrameSpotPicture.WidthRequest = profilePictureDimensions;
@@ -42,7 +57,21 @@ public partial class CP_UpdateSpotPraise : ContentPage
         _colSearchBarCollectionView.BindingContext = SearchBoxContext;
         _colSearchBarCollectionView.MaximumHeightRequest = profilePictureDimensions * 2;
         _colSearchBarCollectionView.SelectionChanged += _colSearchBarCollectionView_SelectionChanged;
-        _entrySpotSearchBar.TextChanged += _entrySpotSearchBar_TextChanged;
+
+        DebouncedSearch = DebounceHelper.Debounce<string?>(async (searchText) =>
+        {
+            await RefreshSearchResults(searchText);
+
+            // Show or hide the search results frame
+            MainThread.BeginInvokeOnMainThread(() =>
+            {
+                _colSearchBarCollectionView.IsVisible = !string.IsNullOrEmpty(searchText) && SearchBoxContext.ItemSource.Count > 0;
+            });
+        });
+        _entrySpotSearchBar.TextChanged += (sender, e) =>
+        {
+            DebouncedSearch(e.NewTextValue);
+        };
 
         _FrameSpotPicture.HeightRequest = profilePictureDimensions;
         _FrameSpotPicture.WidthRequest = profilePictureDimensions;
@@ -73,24 +102,11 @@ public partial class CP_UpdateSpotPraise : ContentPage
         LoadSelectedSpot((Spot)e.CurrentSelection[0]);
     }
 
-    private async void _entrySpotSearchBar_TextChanged(object? sender, TextChangedEventArgs e)
-    {
-        await RefreshSearchResults(_entrySpotSearchBar.Text);
-        if(_entrySpotSearchBar.Text.Length > 0 && SearchBoxContext.ItemSource.Count > 0)
-        {
-            _colSearchBarCollectionView.IsVisible = true;
-        }
-        else
-        {
-            _colSearchBarCollectionView.IsVisible = false;
-        }
-    }
-
-    private async Task RefreshSearchResults(string searchInput)
+    private async Task RefreshSearchResults(string? searchInput)
     {
         try
         {
-            if (searchInput.Length > 0)
+            if ((searchInput?.Length ?? 0) > 0)
             {
                 List<Spot> spotList = await DatabaseManager.FetchSpots_Filtered(filterParams: [searchInput.ToUpper().Trim()]);
                 SearchBoxContext.RefreshFeed(spotList);
@@ -121,7 +137,7 @@ public partial class CP_UpdateSpotPraise : ContentPage
     {
         _lblBrand.Text = spotSelected.FullName;
         _SpotImage.Source = spotSelected.ProfilePictureSource;
-        MainSpotPraise = new("", SessionManager.CurrentSession?.Client?.UserID ?? "", SessionManager.CurrentSession?.Client?.FullName ?? "", spotSelected.SpotID, spotSelected.SpotName, DateTimeOffset.Now);
+        MainSpotPraise = new("", SessionManager.CurrentSession?.Client?.UserID ?? "", SessionManager.CurrentSession?.Client?.FullName ?? "", spotSelected.SpotID, spotSelected.Name, DateTimeOffset.Now);
     }
 
     private async void _btnSave_Clicked(object? sender, EventArgs e)

@@ -27,9 +27,9 @@ public partial class CV_SearchBarDataTemplate : ContentView
         }
         else if(Item?.GetType() == typeof(Spot))
         {
-            lblMainName.SetBinding(Label.TextProperty, "SpotName");
-            lblSecondaryName.SetBinding(Label.TextProperty, "BrandName");
-            lblDetail.SetBinding(Label.TextProperty, "Location.Address");
+            lblMainName.SetBinding(Label.TextProperty, "Name");
+            lblSecondaryName.SetBinding(Label.TextProperty, "Location.Address");
+            lblDetail.SetBinding(Label.TextProperty, "FullPhoneNumber");
         }
     }
 }

@@ -22,12 +22,60 @@ public static class LocationManager
         CurrentLocation = await GetLocation();
     }
 
+    public static async Task<List<Location>> GetLocationsFromAddress(string address)
+    {
+        List<Location> retVal = [];
+
+        try
+        {
+            IEnumerable<Location> locations = await Geocoding.GetLocationsAsync(address);
+            retVal.AddRange(locations);
+        }
+        catch (Exception ex)
+        {
+            if (Application.Current != null)
+            {
+                string[] stringResources = ResourceManagement.GetStringResources(Application.Current.Resources, ["lbl_Error", "lbl_GeolocationError", "lbl_Ok"]);
+                await UserInterface.DisplayPopUp_Regular(stringResources[0], ex.Message + "\n" + stringResources[1], stringResources[2]);
+            }
+        }
+
+        return retVal;
+    }
+
+    public static async Task<List<ListItemAddress>> GetAddressesFromAddress(string originalAddress)
+    {
+        List<ListItemAddress> retVal = [];
+        try
+        {
+            List<Location> locations = await GetLocationsFromAddress(originalAddress);
+            foreach(Location location in locations)
+            {
+                IEnumerable<Placemark> addresses = await Geocoding.GetPlacemarksAsync(location);
+                foreach (Placemark address in addresses)
+                {
+                    string formattedAddress = GetAddressFromPlacemark(address);
+                    retVal.Add(new ListItemAddress(formattedAddress, address.Location));
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            if (Application.Current != null)
+            {
+                string[] stringResources = ResourceManagement.GetStringResources(Application.Current.Resources, ["lbl_Error", "lbl_GeolocationError", "lbl_Ok"]);
+                await UserInterface.DisplayPopUp_Regular(stringResources[0], ex.Message + "\n" + stringResources[1], stringResources[2]);
+            }
+        }
+        return retVal;
+    }
+
     private static async Task<Location?> GetLocation()
     {
         Location? location;
         try
         {
-            location = await Geolocation.Default.GetLastKnownLocationAsync();
+            location = await Geolocation.Default.GetLocationAsync();
             if (location == null)
             {
                 location = await Geolocation.Default.GetLocationAsync();
@@ -63,6 +111,20 @@ public static class LocationManager
             }
         }
         return location;
+    }
+
+    private static string GetAddressFromPlacemark(Placemark placemark)
+    {
+        // Extract the relevant properties from the Placemark object
+        string street = placemark.Thoroughfare ?? ""; // Street name
+        string number = placemark.SubThoroughfare ?? ""; // Street number
+        string col = placemark.SubLocality ?? ""; // Neighborhood or subdivision
+        string city = placemark.Locality ?? ""; // City
+        string state = placemark.AdminArea ?? ""; // State or administrative area
+        string country = placemark.CountryName ?? ""; // Country
+
+        // Format the address string
+        return $"{street} #{number}, {col}, {city}, {state}, {country}".Trim([',', ' ', '#']);
     }
 }
 
@@ -106,6 +168,20 @@ public class FirebaseLocation : IFirestoreObject
         Address = "";
         Latitude = location.Latitude;
         Longitude = location.Longitude;
+    }
+}
+
+public class ListItemAddress
+{
+    public string Address { get; set; }
+    public string LocationString { get; set; }
+    public Location Location { get; set; }
+
+    public ListItemAddress(string address, Location location)
+    {
+        Address = address;
+        Location = location;
+        LocationString = $"{location.Latitude}, {location.Longitude}";
     }
 }
 

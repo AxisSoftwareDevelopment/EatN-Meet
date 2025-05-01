@@ -27,8 +27,8 @@ public partial class CV_DiscoveryFeedDataTemplate : ContentView
         }
         else if (Item?.GetType() == typeof(Spot))
         {
-            lblMainName.SetBinding(Label.TextProperty, nameof(Spot.SpotName));
-            lblSecondaryName.SetBinding(Label.TextProperty, nameof(Spot.BrandName));
+            lblMainName.SetBinding(Label.TextProperty, nameof(Spot.Name));
+            lblSecondaryName.SetBinding(Label.TextProperty, nameof(Spot.FullPhoneNumber));
             lblDetail.SetBinding(Label.TextProperty, $"{nameof(Spot.Location)}.{nameof(Spot.Location.Address)}");
             imgMainImage.SetBinding(Image.SourceProperty, nameof(Spot.ProfilePictureSource));
         }

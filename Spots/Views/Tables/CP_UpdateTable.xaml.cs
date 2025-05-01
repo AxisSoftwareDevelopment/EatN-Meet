@@ -43,17 +43,8 @@ public partial class CP_UpdateTable : ContentPage
     {
         if (!_inputsAreLocked)
         {
-            Navigation.PushAsync(new CP_MapLocationSelector(() => _cvMiniMap.VisibleRegion, SetMiniMapVisibleArea, _entryAddress.Text ?? ""));
+            Navigation.PushAsync(new CP_MapLocationSelector(() => _cvMiniMap.VisibleRegion, _entryAddress.Text ?? ""));
         }
-    }
-
-    private void SetMiniMapVisibleArea(MapSpan mapSpan, string address)
-    {
-        _locationChanged = true;
-        _cvMiniMap.MoveToRegion(mapSpan);
-        _cvMiniMap.Pins.Clear();
-        _cvMiniMap.Pins.Add(new Pin() { Label = address, Location = mapSpan.Center });
-        _entryAddress.Text = address;
     }
 
     private async void SaveOnCLickAsync(object sender, EventArgs e)

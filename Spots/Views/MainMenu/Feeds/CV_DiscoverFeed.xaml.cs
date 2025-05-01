@@ -123,16 +123,7 @@ public partial class CV_DiscoverFeed : ContentView
 
     private void _cvMiniMap_MapClicked(object? sender, EventArgs e)
     {
-        Navigation.PushAsync(new CP_MapLocationSelector(() => _cvMiniMap.VisibleRegion, SetMiniMapVisibleArea, "Selected Area"));
-    }
-
-    private void SetMiniMapVisibleArea(MapSpan mapSpan, string address)
-    {
-        _cvMiniMap.MoveToRegion(mapSpan);
-        _cvMiniMap.Pins.Clear();
-        _cvMiniMap.Pins.Add(new Pin() { Label = address, Location = mapSpan.Center });
-        _radioSelectedLoc.IsChecked = true;
-        SelectedLocation = new(new(mapSpan.LatitudeDegrees, mapSpan.LongitudeDegrees));
+        Navigation.PushAsync(new CP_MapLocationSelector(() => _cvMiniMap.VisibleRegion, "Selected Area"));
     }
 
     private void CV_DiscoverFeed_FiltersTapped(object? sender, TappedEventArgs e)

@@ -1,4 +1,5 @@
 using eatMeet.Models;
+using eatMeet.Utilities;
 using eatMeet.Database;
 
 namespace eatMeet;
@@ -12,13 +13,30 @@ public partial class CP_SearchPage : ContentPage
     };
     private ESearchFocus CurrentFilterApplyed = ESearchFocus.CLIENT;
 	private readonly FeedContext<object> SearchResultsListContext = new();
+    private readonly Action<string?> DebouncedSearch;
+
+    public string SearchTextInput { get; set; } = "";
 	public CP_SearchPage()
 	{
 		InitializeComponent();
 		
 		_colSearchBarCollectionView.BindingContext = SearchResultsListContext;
         _colSearchBarCollectionView.SelectionChanged += _colSearchBarCollectionView_SelectionChanged;
-        _entrySearchTerms.TextChanged += _entrySearchTerms_TextChanged;
+
+        DebouncedSearch = DebounceHelper.Debounce<string?>(async (searchText) =>
+        {
+            await RefreshSearchResults(searchText);
+
+            // Show or hide the search results frame
+            MainThread.BeginInvokeOnMainThread(() =>
+            {
+                _frameSearchResults.IsVisible = !string.IsNullOrEmpty(searchText) && SearchResultsListContext.ItemSource.Count > 0;
+            });
+        });
+        _entrySearchTerms.TextChanged += (sender, e) =>
+        {
+            DebouncedSearch(e.NewTextValue);
+        };
 
         _rbtnClientFilter.CheckedChanged += _rbtnClientFilter_CheckedChanged;
         _rbtnSpotFilet.CheckedChanged += _rbtnSpotFilet_CheckedChanged;
@@ -29,7 +47,7 @@ public partial class CP_SearchPage : ContentPage
         if (e.Value)
         {
             CurrentFilterApplyed = ESearchFocus.CLIENT;
-            _entrySearchTerms_TextChanged(null, new TextChangedEventArgs("", _entrySearchTerms.Text));
+            DebouncedSearch(_entrySearchTerms.Text);
         }
     }
 
@@ -38,23 +56,10 @@ public partial class CP_SearchPage : ContentPage
         if(e.Value)
         {
             CurrentFilterApplyed = ESearchFocus.SPOT;
-            _entrySearchTerms_TextChanged(null, new TextChangedEventArgs("", _entrySearchTerms.Text));
+            DebouncedSearch(_entrySearchTerms.Text);
         }
     }
 
-    private async void _entrySearchTerms_TextChanged(object? sender, TextChangedEventArgs e)
-    {
-        await RefreshSearchResults(e.NewTextValue);
-
-        if(e.NewTextValue != null && e.NewTextValue.Length > 0 && SearchResultsListContext.ItemSource.Count > 0)
-        {
-            _frameSearchResults.IsVisible = true;
-        }
-        else
-        {
-            _frameSearchResults.IsVisible = false;
-        }
-    }
 
     private async void _colSearchBarCollectionView_SelectionChanged(object? sender, SelectionChangedEventArgs e)
     {

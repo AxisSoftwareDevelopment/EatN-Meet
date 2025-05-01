@@ -72,7 +72,7 @@ public class SpotPraise : INotifyPropertyChanged
         AuthorFullName = author.FullName;
         AuthorProfilePicture = author.ProfilePictureSource;
         SpotID = spotPraise_FB.SpotID;
-        SpotFullName = spot.SpotName + " - " + spot.BrandName;
+        SpotFullName = spot.Name + " - " + spot.Location.Address;
         SpotProfilePicture = spot.ProfilePictureSource;
         SpotLocation = spotPraise_FB.SpotLocation;
         CreationDate = spotPraise_FB.CreationDate;
