@@ -30,9 +30,9 @@
 	<string>Assets.xcassets/appicon.appiconset</string>
 
 	<key>NSLocationWhenInUseUsageDescription</key>
-	<string>We need your location to provide better services.</string>
+	<string>When in use permissions</string>
 	<key>NSLocationAlwaysUsageDescription</key>
-	<string>We need your location to provide better services.</string>
+	<string>always permissions</string>
 	<key>NSLocationAlwaysAndWhenInUsageDescription</key>
 	<string>Always and in usage permissions</string>
 </dict>
