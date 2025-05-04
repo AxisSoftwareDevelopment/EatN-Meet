@@ -17,7 +17,7 @@ public partial class CP_UpdateSpot : ContentPage
     private bool _locationChanged = false;
     private ImageFile? _profilePictureFile = null;
     private readonly FeedContext<ListItemAddress> SearchBoxContext = new();
-    private readonly Action<string?> DebouncedSearch;
+    private readonly DebouncedAction<string> DebouncedSearch;
 
     public CP_UpdateSpot(Spot? spot = null)
     {
@@ -40,19 +40,10 @@ public partial class CP_UpdateSpot : ContentPage
         _colSearchBarResults.MaximumHeightRequest = profilePictureDimensions * 1;
         _colSearchBarResults.SelectionChanged += _colSearchBarResults_SelectionChanged;
 
-        DebouncedSearch = DebounceHelper.Debounce<string?>(async (searchText) =>
-        {        
-            await RefreshSearchResults(searchText);
-
-            // Show or hide the search results frame
-            MainThread.BeginInvokeOnMainThread(() =>
-            {
-                _colSearchBarResults.IsVisible = !string.IsNullOrEmpty(searchText) && SearchBoxContext.ItemSource.Count > 0;
-            });
-        });
-        _entryAddress.TextChanged += (sender, e) =>
+        DebouncedSearch = new ( RefreshSearchResults );
+        _entryAddress.TextChanged += async (sender, e) =>
         {
-            DebouncedSearch(e.NewTextValue);
+            await DebouncedSearch.Run(e.NewTextValue);
         };
 
         _FrameProfilePicture.HeightRequest = profilePictureDimensions;

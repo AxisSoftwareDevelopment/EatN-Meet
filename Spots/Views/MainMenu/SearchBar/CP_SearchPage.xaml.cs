@@ -13,7 +13,7 @@ public partial class CP_SearchPage : ContentPage
     };
     private ESearchFocus CurrentFilterApplyed = ESearchFocus.CLIENT;
 	private readonly FeedContext<object> SearchResultsListContext = new();
-    private readonly Action<string?> DebouncedSearch;
+    private readonly DebouncedAction<string> DebouncedSearch;
 
     public string SearchTextInput { get; set; } = "";
 	public CP_SearchPage()
@@ -23,40 +23,31 @@ public partial class CP_SearchPage : ContentPage
 		_colSearchBarCollectionView.BindingContext = SearchResultsListContext;
         _colSearchBarCollectionView.SelectionChanged += _colSearchBarCollectionView_SelectionChanged;
 
-        DebouncedSearch = DebounceHelper.Debounce<string?>(async (searchText) =>
+        DebouncedSearch = new (RefreshSearchResults);
+        _entrySearchTerms.TextChanged += async (sender, e) =>
         {
-            await RefreshSearchResults(searchText);
-
-            // Show or hide the search results frame
-            MainThread.BeginInvokeOnMainThread(() =>
-            {
-                _frameSearchResults.IsVisible = !string.IsNullOrEmpty(searchText) && SearchResultsListContext.ItemSource.Count > 0;
-            });
-        });
-        _entrySearchTerms.TextChanged += (sender, e) =>
-        {
-            DebouncedSearch(e.NewTextValue);
+            await DebouncedSearch.Run(e.NewTextValue);
         };
 
         _rbtnClientFilter.CheckedChanged += _rbtnClientFilter_CheckedChanged;
         _rbtnSpotFilet.CheckedChanged += _rbtnSpotFilet_CheckedChanged;
 	}
 
-    private void _rbtnClientFilter_CheckedChanged(object? sender, CheckedChangedEventArgs e)
+    private async void _rbtnClientFilter_CheckedChanged(object? sender, CheckedChangedEventArgs e)
     {
         if (e.Value)
         {
             CurrentFilterApplyed = ESearchFocus.CLIENT;
-            DebouncedSearch(_entrySearchTerms.Text);
+            await DebouncedSearch.Run(_entrySearchTerms.Text);
         }
     }
 
-    private void _rbtnSpotFilet_CheckedChanged(object? sender, CheckedChangedEventArgs e)
+    private async void _rbtnSpotFilet_CheckedChanged(object? sender, CheckedChangedEventArgs e)
     {
         if(e.Value)
         {
             CurrentFilterApplyed = ESearchFocus.SPOT;
-            DebouncedSearch(_entrySearchTerms.Text);
+            await DebouncedSearch.Run(_entrySearchTerms.Text);
         }
     }
 
@@ -77,7 +68,7 @@ public partial class CP_SearchPage : ContentPage
         }
     }
 
-    private async Task RefreshSearchResults(string? searchInput)
+    private async Task RefreshSearchResults(string searchInput)
     {
         string[] inputs = searchInput != null ? [searchInput.ToUpper().Trim()] : [];
         if (inputs.Length > 0)

@@ -10,7 +10,7 @@ public partial class CP_UpdateSpotPraise : ContentPage
 	private SpotPraise? MainSpotPraise;
     private readonly FeedContext<Spot> SearchBoxContext = new();
     private ImageFile? _AttachmentFile;
-    private readonly Action<string?> DebouncedSearch;
+    private readonly DebouncedAction<string> DebouncedSearch;
     public CP_UpdateSpotPraise(SpotPraise? spotPraise = null)
 	{
         DisplayInfo displayInfo = DeviceDisplay.MainDisplayInfo;
@@ -24,7 +24,7 @@ public partial class CP_UpdateSpotPraise : ContentPage
         _colSearchBarCollectionView.MaximumHeightRequest = profilePictureDimensions * 2;
         _colSearchBarCollectionView.SelectionChanged += _colSearchBarCollectionView_SelectionChanged;
 
-        DebouncedSearch = DebounceHelper.Debounce<string?>(async (searchText) =>
+        DebouncedSearch = new (async (searchText) =>
         {
             await RefreshSearchResults(searchText);
 
@@ -34,9 +34,9 @@ public partial class CP_UpdateSpotPraise : ContentPage
                 _colSearchBarCollectionView.IsVisible = !string.IsNullOrEmpty(searchText) && SearchBoxContext.ItemSource.Count > 0;
             });
         });
-        _entrySpotSearchBar.TextChanged += (sender, e) =>
+        _entrySpotSearchBar.TextChanged += async (sender, e) =>
         {
-            DebouncedSearch(e.NewTextValue);
+            await DebouncedSearch.Run(e.NewTextValue);
         };
 
         _FrameSpotPicture.HeightRequest = profilePictureDimensions;
@@ -58,7 +58,7 @@ public partial class CP_UpdateSpotPraise : ContentPage
         _colSearchBarCollectionView.MaximumHeightRequest = profilePictureDimensions * 2;
         _colSearchBarCollectionView.SelectionChanged += _colSearchBarCollectionView_SelectionChanged;
 
-        DebouncedSearch = DebounceHelper.Debounce<string?>(async (searchText) =>
+        DebouncedSearch = new(async (searchText) =>
         {
             await RefreshSearchResults(searchText);
 
@@ -68,9 +68,9 @@ public partial class CP_UpdateSpotPraise : ContentPage
                 _colSearchBarCollectionView.IsVisible = !string.IsNullOrEmpty(searchText) && SearchBoxContext.ItemSource.Count > 0;
             });
         });
-        _entrySpotSearchBar.TextChanged += (sender, e) =>
+        _entrySpotSearchBar.TextChanged += async (sender, e) =>
         {
-            DebouncedSearch(e.NewTextValue);
+            await DebouncedSearch.Run(e.NewTextValue);
         };
 
         _FrameSpotPicture.HeightRequest = profilePictureDimensions;

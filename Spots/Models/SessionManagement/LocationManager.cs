@@ -31,14 +31,7 @@ public static class LocationManager
             IEnumerable<Location> locations = await Geocoding.GetLocationsAsync(address);
             retVal.AddRange(locations);
         }
-        catch (Exception ex)
-        {
-            if (Application.Current != null)
-            {
-                string[] stringResources = ResourceManagement.GetStringResources(Application.Current.Resources, ["lbl_Error", "lbl_GeolocationError", "lbl_Ok"]);
-                await UserInterface.DisplayPopUp_Regular(stringResources[0], ex.Message + "\n" + stringResources[1], stringResources[2]);
-            }
-        }
+        catch (Exception) { }
 
         return retVal;
     }
