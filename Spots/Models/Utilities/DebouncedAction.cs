@@ -1,6 +1,4 @@
-﻿
-
-namespace eatMeet.Utilities
+﻿namespace eatMeet.Utilities
 {
     public class DebouncedAction<T>
     {
@@ -17,14 +15,22 @@ namespace eatMeet.Utilities
         public async Task Run(T arguments)
         {
             bool bShouldRunTask = true;
-#if ANDROID
+//#if ANDROID
             _cancelTokenSource?.Cancel();
             _cancelTokenSource = new CancellationTokenSource();
 
-            Task delayTask = Task.Delay(_delay, _cancelTokenSource.Token);
-            await delayTask;
-            bShouldRunTask = !delayTask.IsCanceled;
-#endif
+            try
+            {
+                Task delayTask = Task.Delay(_delay, _cancelTokenSource.Token);
+                await delayTask;
+                bShouldRunTask = !delayTask.IsCanceled;
+            }
+            catch (TaskCanceledException)
+            {
+                // Expected: ignore, as this is part of debounce logic
+                bShouldRunTask = false;
+            }
+//#endif
             if (bShouldRunTask)
             {
                 await _action(arguments);

@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="eatMeet.CP_UpdateSpotPraise"
+             Title="CP_UpdateSpotPraise"
+             BackgroundColor="{DynamicResource Primary}">
+
+    <NavigationPage.TitleView>
+        <Label Text="{DynamicResource lbl_WriteSpotReview}" TextColor="{DynamicResource PrimaryAccent}" FontSize="24" FontAttributes="Bold" HorizontalOptions="Start" VerticalOptions="Center"></Label>
+    </NavigationPage.TitleView>
+
+    <Border Margin="20, 0, 20, 20" StrokeShape="RoundRectangle 25,25,25,25" HorizontalOptions="FillAndExpand" VerticalOptions="FillAndExpand" BackgroundColor="{DynamicResource Secondary}">
+        <StackLayout Margin="10, 10" VerticalOptions="FillAndExpand">
+            <ScrollView x:Name="_scrollviewMain" VerticalOptions="FillAndExpand" HorizontalOptions="FillAndExpand" HorizontalScrollBarVisibility="Never" VerticalScrollBarVisibility="Never">
+                <StackLayout>
+                    <!-- Error Message -->
+                    <Label x:Name="_lblRegisterError" Text="" IsVisible="False" TextColor="{DynamicResource ErrorAccent}"/>
+                    <!-- Spot Search Bar -->
+                    <StackLayout Orientation="Horizontal">
+                        <Label Text="{DynamicResource lbl_SpotName}" TextColor="{DynamicResource SecondaryAccent}" HorizontalOptions="Center" HorizontalTextAlignment="Center"
+                            Margin="0,20,0,0"/>
+                        <Label Text=" *" VerticalOptions="Center" FontAttributes="Bold" TextColor="{DynamicResource ErrorAccent}" Margin="0,20,0,0"/>
+                    </StackLayout>
+                    <Entry x:Name="_entrySpotSearchBar"/>
+                    <Border StrokeShape="RoundRectangle 10" BackgroundColor="{DynamicResource Primary}">
+                        <CollectionView x:Name="_colSearchBarCollectionView" HorizontalOptions="FillAndExpand" ItemsSource="{Binding ItemSource}" SelectionMode="Single" Margin="0,3,0,0">
+                            <CollectionView.ItemTemplate>
+                                <DataTemplate>
+                                    <ContentView>
+                                        <Border Margin="5, 0, 5, 5" StrokeShape="RoundRectangle 5,5,5,5" HorizontalOptions="FillAndExpand" VerticalOptions="FillAndExpand" BackgroundColor="{DynamicResource Secondary}">
+                                            <StackLayout Orientation="Horizontal" BackgroundColor="{DynamicResource Secondary}" HorizontalOptions="FillAndExpand" Margin="5,5">
+                                                <Image Source="{Binding ProfilePictureSource}" HeightRequest="50" WidthRequest="50" BackgroundColor="{DynamicResource Primary}"/>
+                                                <StackLayout Orientation="Vertical" HorizontalOptions="FillAndExpand" Margin="5,5">
+                                                    <Label Text="{Binding SpotName}" FontSize="Medium" FontAttributes="Bold" TextColor="{DynamicResource SecondaryAccent}" MaxLines="2"/>
+                                                    <Label Text="{Binding Location.Address}" FontSize="Small" LineBreakMode="WordWrap" TextColor="{DynamicResource SecondaryAccent}" MaxLines="2"/>
+                                                </StackLayout>
+                                            </StackLayout>
+                                        </Border>
+                                    </ContentView>
+                                </DataTemplate>
+                            </CollectionView.ItemTemplate>
+                        </CollectionView>
+                    </Border>
+                    <Button x:Name="_btnNewSpot" Text="{DynamicResource lbl_NewSpot}" BackgroundColor="{DynamicResource Tertiary}" TextColor="{DynamicResource PrimaryAccent}" VerticalOptions="Center"
+                        Clicked="_btnNewSpot_Clicked" Margin="0,5,0,0"/>
+                    <Label x:Name="_lblBrand" Text="Brand" TextColor="{DynamicResource SecondaryAccent}" FontAttributes="Bold" HorizontalOptions="FillAndExpand" HorizontalTextAlignment="Center" Margin="0,20,0,0"/>
+                    <!-- Profile Picture -->
+                    <Border x:Name="_FrameSpotPicture" Padding="0" Margin="15,15,15,0" StrokeShape="RoundRectangle 500" BackgroundColor="{DynamicResource Tertiary}">
+                        <Image x:Name="_SpotImage" Aspect="AspectFill"/>
+                    </Border>
+                    <!-- Review Comment -->
+                    <Label Text="{DynamicResource lbl_AddReviewComment}" TextColor="{DynamicResource SecondaryAccent}" HorizontalOptions="FillAndExpand" HorizontalTextAlignment="Start"/>
+                    <Editor x:Name="_editorDescription" Placeholder="{DynamicResource lbl_YourComment}" HorizontalOptions="FillAndExpand" AutoSize="TextChanges"/>
+                    <!-- Attachment Picture -->
+                    <Button x:Name="_btnLoadImage" Text="{DynamicResource lbl_LoadImage}" BackgroundColor="{DynamicResource Tertiary}" TextColor="{DynamicResource PrimaryAccent}" VerticalOptions="Center"
+                            Clicked="LoadImageOnClickAsync"/>
+                    <Image x:Name="_imgAttachmentImage" Aspect="AspectFit" Margin="10, 10"/>
+                </StackLayout>
+            </ScrollView>
+            <StackLayout Orientation="Horizontal" HorizontalOptions="Center">
+                <Button x:Name="_btnSave" CornerRadius="15" BackgroundColor="{DynamicResource Tertiary}" TextColor="{DynamicResource PrimaryAccent}" FontSize="Medium"
+                        Text="{DynamicResource lbl_Save}" Margin="20,20,20,20" />
+            </StackLayout>
+        </StackLayout>
+    </Border>
+
+</ContentPage>

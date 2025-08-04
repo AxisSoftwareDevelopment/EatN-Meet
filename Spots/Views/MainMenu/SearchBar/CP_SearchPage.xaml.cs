@@ -77,11 +77,15 @@ public partial class CP_SearchPage : ContentPage
             if(CurrentFilterApplyed == ESearchFocus.CLIENT)
             {
                 List<Client> spots = await DatabaseManager.FetchClients_Filtered(nameSearchTerms: inputs, currentUsrID_ToAvoid: SessionManager.CurrentSession?.Client?.UserID);
+                // Remove duplicates by UserID
+                spots = spots.GroupBy(c => c.UserID).Select(g => g.First()).ToList();
                 spots.ForEach(list.Add);
             }
             else
             {
                 List<Spot> spots = await DatabaseManager.FetchSpots_Filtered(filterParams: inputs);
+                // Remove duplicates by SpotID
+                spots = spots.GroupBy(s => s.SpotID).Select(g => g.First()).ToList();
                 spots.ForEach(list.Add);
             }
 

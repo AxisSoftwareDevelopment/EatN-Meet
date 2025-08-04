@@ -1,6 +1,6 @@
-﻿using eatMeet.CloudMessaging;
-using eatMeet.Database;
+﻿using eatMeet.Database;
 using eatMeet.Models;
+using eatMeet.CloudMessaging;
 using System.ComponentModel;
 
 namespace eatMeet.Notifications
