@@ -12,15 +12,30 @@ public partial class CP_UpdateSpotPraise : ContentPage
     private readonly FeedContext<Spot> SearchBoxContext = new();
     private ImageFile? _AttachmentFile;
     private readonly DebouncedAction<string> DebouncedSearch;
-    public CP_UpdateSpotPraise(SpotPraise? spotPraise = null)
+    private bool _LoadingResults = false;
+
+    public bool LoadingResults
+    {
+        get => _LoadingResults;
+        set
+        {
+            _LoadingResults = value;
+            _borderSpotSearch.IsVisible = _LoadingResults || SearchBoxContext.ItemSource.Count > 0;
+            OnPropertyChanged(nameof(LoadingResults));
+        }
+    }
+    public CP_UpdateSpotPraise() : this(null, null) { }
+    public CP_UpdateSpotPraise(Spot spot) : this(null, spot) { }
+    public CP_UpdateSpotPraise(SpotPraise spotPraise) : this(spotPraise, null) { }
+    private CP_UpdateSpotPraise(SpotPraise? spotPraise = null, Spot? spot = null)
 	{
         DisplayInfo displayInfo = DeviceDisplay.MainDisplayInfo;
         double profilePictureDimensions = displayInfo.Height * 0.065;
 
         InitializeComponent();
 
-        LoadSpotPraise(spotPraise);
-
+        _borderActLoadingIndicator.BindingContext = this;
+        _actLoadingIndicator.BindingContext = this;
         _colSearchBarCollectionView.BindingContext = SearchBoxContext;
         _colSearchBarCollectionView.MaximumHeightRequest = profilePictureDimensions * 2;
         _colSearchBarCollectionView.SelectionChanged += _colSearchBarCollectionView_SelectionChanged;
@@ -32,45 +47,12 @@ public partial class CP_UpdateSpotPraise : ContentPage
             // Show or hide the search results frame
             MainThread.BeginInvokeOnMainThread(() =>
             {
-                _colSearchBarCollectionView.IsVisible = !string.IsNullOrEmpty(searchText) && SearchBoxContext.ItemSource.Count > 0;
+                _colSearchBarCollectionView.IsVisible = LoadingResults || !string.IsNullOrEmpty(searchText) && SearchBoxContext.ItemSource.Count > 0;
             });
         });
         _entrySpotSearchBar.TextChanged += async (sender, e) =>
         {
-            await DebouncedSearch.Run(e.NewTextValue);
-        };
-
-        _FrameSpotPicture.HeightRequest = profilePictureDimensions;
-        _FrameSpotPicture.WidthRequest = profilePictureDimensions;
-
-        _btnSave.Clicked += _btnSave_Clicked;
-    }
-
-    public CP_UpdateSpotPraise(Spot spot)
-    {
-        MainSpotPraise = null;
-
-        DisplayInfo displayInfo = DeviceDisplay.MainDisplayInfo;
-        double profilePictureDimensions = displayInfo.Height * 0.065;
-
-        InitializeComponent();
-
-        _colSearchBarCollectionView.BindingContext = SearchBoxContext;
-        _colSearchBarCollectionView.MaximumHeightRequest = profilePictureDimensions * 2;
-        _colSearchBarCollectionView.SelectionChanged += _colSearchBarCollectionView_SelectionChanged;
-
-        DebouncedSearch = new(async (searchText) =>
-        {
-            await RefreshSearchResults(searchText);
-
-            // Show or hide the search results frame
-            MainThread.BeginInvokeOnMainThread(() =>
-            {
-                _colSearchBarCollectionView.IsVisible = !string.IsNullOrEmpty(searchText) && SearchBoxContext.ItemSource.Count > 0;
-            });
-        });
-        _entrySpotSearchBar.TextChanged += async (sender, e) =>
-        {
+            LoadingResults = true;
             await DebouncedSearch.Run(e.NewTextValue);
         };
 
@@ -79,10 +61,16 @@ public partial class CP_UpdateSpotPraise : ContentPage
 
         _btnSave.Clicked += _btnSave_Clicked;
 
-        LoadSelectedSpot(spot);
-
-        _entrySpotSearchBar.IsVisible = false;
-        _colSearchBarCollectionView.IsVisible = false;
+        if (spot != null)
+        {
+            LoadSelectedSpot(spot);
+            _entrySpotSearchBar.IsVisible = false;
+            _colSearchBarCollectionView.IsVisible = false;
+        }
+        else
+        {
+            LoadSpotPraise(spotPraise);
+        }
     }
     private void LoadSpotPraise(SpotPraise? praise)
     {
@@ -90,6 +78,8 @@ public partial class CP_UpdateSpotPraise : ContentPage
 
         if(MainSpotPraise != null)
         {
+            _entrySpotSearchBar.IsVisible = false;
+            _colSearchBarCollectionView.IsVisible = false;
             _lblBrand.Text = MainSpotPraise.SpotFullName;
             _editorDescription.Text = MainSpotPraise.Comment;
             _imgAttachmentImage.Source = MainSpotPraise.AttachedPicture;
@@ -99,8 +89,11 @@ public partial class CP_UpdateSpotPraise : ContentPage
 
     private void _colSearchBarCollectionView_SelectionChanged(object? sender, SelectionChangedEventArgs e)
     {
+        Spot selectedSpot = (Spot)e.CurrentSelection[0];
+        MainSpotPraise = null;
         _entrySpotSearchBar.Text = "";
-        LoadSelectedSpot((Spot)e.CurrentSelection[0]);
+        _entrySpotSearchBar.Placeholder = selectedSpot.FullName;
+        LoadSelectedSpot(selectedSpot);
     }
 
     private async Task RefreshSearchResults(string? searchInput)
@@ -112,8 +105,7 @@ public partial class CP_UpdateSpotPraise : ContentPage
                 Location? location = LocationManager.CurrentLocation ?? await LocationManager.GetUpdatedLocaionAsync();
                 if (location != null)
                 {
-                    List<Spot> functionResult = await GooglePlaces.GetAllRestaurants(searchInput?.ToUpper().Trim() ?? "", location, 1000);
-                    List<Spot> spotList = await DatabaseManager.FetchSpots_Filtered(filterParams: [searchInput?.ToUpper().Trim() ?? ""]);
+                    List<Spot> spotList = await GooglePlaces.GetAllRestaurants(searchInput?.ToUpper().Trim() ?? "", location, 1000, 5);
                     SearchBoxContext.RefreshFeed(spotList);
                 }
             }
@@ -126,6 +118,8 @@ public partial class CP_UpdateSpotPraise : ContentPage
         {
             await UserInterface.DisplayPopUp_Regular("Unhandled Error", ex.Message, "OK");
         }
+
+        LoadingResults = false;
     }
 
     public async void LoadImageOnClickAsync(object sender, EventArgs e)
@@ -143,7 +137,7 @@ public partial class CP_UpdateSpotPraise : ContentPage
     {
         _lblBrand.Text = spotSelected.FullName;
         _SpotImage.Source = spotSelected.ProfilePictureSource;
-        MainSpotPraise = new("", SessionManager.CurrentSession?.Client?.UserID ?? "", SessionManager.CurrentSession?.Client?.FullName ?? "", spotSelected.SpotID, spotSelected.Name, DateTimeOffset.Now);
+        MainSpotPraise = new("", SessionManager.CurrentSession?.Client?.UserID ?? "", SessionManager.CurrentSession?.Client?.FullName ?? "", spotSelected.SpotID, spotSelected.Name, DateTimeOffset.Now, spotPictureAddress: spotSelected.ProfilePictureAddress);
     }
 
     private async void _btnSave_Clicked(object? sender, EventArgs e)
@@ -151,19 +145,14 @@ public partial class CP_UpdateSpotPraise : ContentPage
         LockInputs();
         if(MainSpotPraise != null)
         {
-            MainSpotPraise.Comment = _editorDescription.Text.Trim();
+            MainSpotPraise.Comment = _editorDescription.Text?.Trim() ?? "";
 
-            if(await DatabaseManager.SaveSpotPraiseData(MainSpotPraise, _AttachmentFile))
+            if(await DatabaseManager.Transaction_SaveSpotPraiseData(MainSpotPraise, _AttachmentFile))
             {
                 await Navigation.PopAsync();
             }
         }
         UnlockInputs();
-    }
-
-    private async void _btnNewSpot_Clicked(object? sender, EventArgs e)
-    {
-        await Navigation.PushAsync(new CP_UpdateSpot());
     }
 
     private void LockInputs()

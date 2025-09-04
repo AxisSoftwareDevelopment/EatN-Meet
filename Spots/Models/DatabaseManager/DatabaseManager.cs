@@ -1,12 +1,12 @@
-using Plugin.Firebase.Auth;
-using Plugin.Firebase.Firestore;
-using Plugin.Firebase.Core.Exceptions;
-
-using eatMeet.Models;
-using eatMeet.Firestore;
-using eatMeet.Utilities;
-using eatMeet.ResourceManager;
 using eatMeet.FirebaseStorage;
+using eatMeet.Firestore;
+using eatMeet.Models;
+using eatMeet.ResourceManager;
+using eatMeet.Utilities;
+using Plugin.Firebase.Auth;
+using Plugin.Firebase.Core.Exceptions;
+using Plugin.Firebase.Firestore;
+using System.Reflection.Metadata;
 
 namespace eatMeet.Database;
 public static class DatabaseManager
@@ -135,15 +135,11 @@ public static class DatabaseManager
         return user;
     }
 
-    public async static Task<Spot> GetSpotDataAsync(string spotID)
+    public async static Task<Spot?> GetSpotDataAsync(string spotID)
     {
         Spot_Firebase? spotFB = await FirestoreManager.GetDocumentData<Spot_Firebase>(COLLECTION_SPOTS, spotID);
 
-        Spot spot = new() { SpotID = spotID };
-        if (spotFB != null)
-        {
-            spot = new(spotFB, await spotFB.GetImageSource());
-        }
+        Spot? spot = spotFB == null ? null : new(spotFB, await spotFB.GetImageSource());
 
         return spot;
     }
@@ -201,36 +197,6 @@ public static class DatabaseManager
                 await FirestoreManager.UpdateSpecificData(COLLECTION_TABLES, tableID, nameof(Table_Firebase.TablePictureAddress), tablePictureAddress);
             }
         }
-
-        return true;
-    }
-
-    public static async Task<bool> SaveSpotPraiseData(SpotPraise praise, ImageFile? imageFile = null)
-    {
-        SpotPraise_Firebase praise_Firebase = new(praise);
-
-        if (praise_Firebase.PraiseID.Length > 0)
-        {
-            if (imageFile != null)
-            {
-                praise_Firebase.AttachedPictureAddress = await SaveFile($"Users/{praise_Firebase.AuthorID}/PraiseAttachments", praise_Firebase.PraiseID, imageFile);
-            }
-            await FirestoreManager.SetDocumentData(COLLECTION_PRAISES, praise_Firebase, praise_Firebase.PraiseID);
-        }
-        else
-        {
-            string documentID = await FirestoreManager.SetDocumentData(COLLECTION_PRAISES, praise_Firebase);
-            if (imageFile != null)
-            {
-                string attachmentAddress = await SaveFile($"Users/{praise_Firebase.AuthorID}/PraiseAttachments", praise_Firebase.PraiseID, imageFile);
-                await FirestoreManager.UpdateSpecificData(COLLECTION_PRAISES, praise_Firebase.PraiseID, nameof(SpotPraise_Firebase.AttachedPictureAddress), attachmentAddress);
-            }
-        }
-
-        // We create dummy client and spot so the method doesnt call their info from db, as we dont need it.
-        List<SpotPraise> praises = await FetchSpotPraises_Filtered(author: new Client(praise.AuthorID, "", "", DateTime.Now, ""), spot: new Spot(praise.SpotID, "", ""));
-
-        await FirestoreManager.UpdateSpecificData(COLLECTION_SPOTS, praise.SpotID, nameof(Spot_Firebase.PraiseCount), praises.Count);
 
         return true;
     }
@@ -387,7 +353,7 @@ public static class DatabaseManager
         // Query Filters
         const int maxItemsToFetch = 25;
         Dictionary<string, object[]>? arrayContainsAnyFilters =  new() { { nameof(SpotPraise_Firebase.AuthorID_Array), praiseAuthorIDs.ToArray() } };
-        string? lastItemFetchedID = lastPraise?.PraiseID;
+        string? lastItemFetchedID = lastPraise?.PraiseID ?? null;
         string orderBy = nameof(SpotPraise_Firebase.CreationDate);
 
         if (client.FollowedCount > 0)
@@ -419,7 +385,9 @@ public static class DatabaseManager
         const int maxItemsToFetch = 5;
         Dictionary<string, object>? equalsToFilters = null;
         Dictionary<string, object[]>? arrayContainsAnyFilters = null;
-        string? lastItemFetchedID = lastPraise?.PraiseID;
+        string? lastItemFetchedID = lastPraise == null ? null : lastPraise.PraiseID;
+        // The '?.' seems to not be working properly.
+        //string? lastItemFetchedID = lastPraise?.PraiseID;
         string? orderBy = order;
 
         if (author != null ^ authorId != null)
@@ -447,7 +415,8 @@ public static class DatabaseManager
             filters_EqualsTo: equalsToFilters,
             filters_ArrayContainsAny: arrayContainsAnyFilters,
             filters_orderBy: orderBy,
-            lastItemQueriedID: lastItemFetchedID);
+            lastItemQueriedID: lastItemFetchedID
+        );
 
         retVal = await SpotPraise.GetPraisesFromFirebaseObject(praises_Firebase, author: author, spot: spot);
 
@@ -657,6 +626,45 @@ public static class DatabaseManager
     #endregion
 
     #region Transactions
+    public static async Task<bool> Transaction_SaveSpotPraiseData(SpotPraise praise, ImageFile? imageFile = null)
+    {
+        SpotPraise_Firebase praise_Firebase = new(praise);
+        if (imageFile != null)
+        {
+            praise_Firebase.AttachedPictureAddress = await SaveFile($"Users/{praise_Firebase.AuthorID}/PraiseAttachments", praise_Firebase.PraiseID, imageFile);
+        }
+
+        // Get document reference
+        IDocumentReference praiseDocRef = CrossFirebaseFirestore.Current.GetCollection(COLLECTION_PRAISES).GetDocument(praise_Firebase.PraiseID);
+        IDocumentReference spotDocRef = CrossFirebaseFirestore.Current.GetCollection(COLLECTION_SPOTS).GetDocument(praise_Firebase.SpotID);
+
+        return await CrossFirebaseFirestore.Current.RunTransactionAsync(transaction =>
+        {
+            IDocumentSnapshot<Spot_Firebase> existingSpot = transaction.GetDocument<Spot_Firebase>(spotDocRef);
+
+            // Update Praise Data
+            transaction.UpdateData(praiseDocRef, (nameof(praise_Firebase.Comment), praise_Firebase.Comment));
+            // Only update the picture address if its an existing praise, else the immage is added in the AddDocumentAsync call.
+            if (imageFile != null && praise_Firebase.PraiseID.Length > 0)
+            {
+                transaction.UpdateData(praiseDocRef, (nameof(praise_Firebase.AttachedPictureAddress), praise_Firebase.AttachedPictureAddress));
+            }
+
+            // Update Spot Praise Count
+            if (existingSpot?.Data == null)
+            {
+                // Magic number 1 = Initial Praise Count
+                transaction.SetData(spotDocRef, new Spot_Firebase(spotDocRef.Id, praise.SpotFullName, praise.SpotLocation, praise.SpotProfilePictureAddress ?? "", 1));
+            }
+            else if (praise_Firebase.PraiseID.Length == 0)
+            {
+                // If its a new praise, we increase the praise count
+                transaction.UpdateData(spotDocRef, (nameof(Spot_Firebase.PraiseCount), existingSpot.Data.PraiseCount + 1));
+            }
+
+            return true;
+        });
+    }
     public static async Task<bool> Transaction_DeleteTableAsync(string tableID)
     {
         bool retVal = false;

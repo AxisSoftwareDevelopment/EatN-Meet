@@ -1,5 +1,6 @@
 using eatMeet.Models;
 using eatMeet.Database;
+using eatMeet.Utilities;
 
 namespace eatMeet;
 
@@ -55,11 +56,17 @@ public partial class CV_MainFeed : ContentView
 	{
 		List<SpotPraise> retVal = [];
 
-		if(SessionManager.CurrentSession?.Client != null)
-		{
-			retVal = await DatabaseManager.FetchSpotPraises_FromFollowedClients(SessionManager.CurrentSession.Client, lastItemFetched);
+        if (SessionManager.CurrentSession?.Client != null)
+        {
+            try
+            {
+                retVal = await DatabaseManager.FetchSpotPraises_FromFollowedClients(SessionManager.CurrentSession.Client, lastItemFetched);
+            }
+            catch (Exception ex)
+            {
+                await UserInterface.DisplayPopUp_Regular("Unhandled Error", ex.Message, "OK");
+            }
         }
-
 		return retVal;
 	}
 

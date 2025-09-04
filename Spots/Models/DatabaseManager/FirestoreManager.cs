@@ -25,6 +25,10 @@ namespace eatMeet.Firestore
                     retval = default;
                     retries++;
                 }
+                if(retval == null)
+                {
+                    retries++;
+                }
             }
 
             return retval;

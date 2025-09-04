@@ -12,9 +12,7 @@ public class Spot : INotifyPropertyChanged
     private string? _SpotID;
     private string? _Name;
     private ImageSource? _profilePictureSource;
-    private string? _phoneNumber;
-    private string? _phoneCountryCode;
-    private string? _description;
+    private string? _profilePictureAddress;
     private FirebaseLocation? _location;
     private int? _praiseCount;
     #endregion
@@ -38,9 +36,15 @@ public class Spot : INotifyPropertyChanged
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(ProfilePictureSource)));
         }
     }
-    public string FullPhoneNumber
+    public string? ProfilePictureAddress
     {
-        get => (PhoneNumber?.Length < 10 || PhoneCountryCode.Length < 2) ? "+ -- --- --- ----" : $"+({_phoneCountryCode}) {PhoneNumber?[..3]} {PhoneNumber?.Substring(3, 3)} {PhoneNumber?.Substring(6, 4)}";
+        get => _profilePictureAddress;
+        set
+        {
+            _profilePictureAddress = value;
+            ProfilePictureSource = string.IsNullOrEmpty(value) ? ImageSource.FromFile("logolong.png") : ImageSource.FromUri(new(value));
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(ProfilePictureAddress)));
+        }
     }
     public string FullName
     {
@@ -54,33 +58,6 @@ public class Spot : INotifyPropertyChanged
             _Name = value.Equals("") ? null : value;
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Name)));
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(FullName)));
-        }
-    }
-    public string PhoneNumber
-    {
-        get => _phoneNumber ?? "";
-        set
-        {
-            _phoneNumber = value.Equals("") ? null : value;
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(PhoneNumber)));
-        }
-    }
-    public string PhoneCountryCode
-    {
-        get => _phoneCountryCode ?? "";
-        set
-        {
-            _phoneCountryCode = value.Equals("") ? null : value;
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(PhoneCountryCode)));
-        }
-    }
-    public string Description
-    {
-        get => _description ?? "";
-        set
-        {
-            _description = value.Equals("") ? null : value;
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Description)));
         }
     }
     public FirebaseLocation Location
@@ -117,22 +94,23 @@ public class Spot : INotifyPropertyChanged
     public Spot()
     {
         Name = "";
-        PhoneCountryCode = "";
-        PhoneNumber = "";
-        Description = "";
         Location = new FirebaseLocation();
         PraiseCount = 0;
     }
 
-    public Spot(string userID, string name, ImageSource? profilePictureSource = null,
+    public Spot(string userID, string name, ImageSource? profilePictureSource = null, string? profilePictureAddress = null,
         string phoneNumber = "", string phoneCountryCode = "", string description = "", FirebaseLocation? location = null, int? praiseCount = null)
     {
         SpotID = userID;
         Name = name;
-        ProfilePictureSource = profilePictureSource ?? ImageSource.FromFile("logolong.png");
-        PhoneNumber = phoneNumber;
-        PhoneCountryCode = phoneCountryCode;
-        Description = description;
+        if (profilePictureAddress != null)
+        {
+            ProfilePictureAddress = profilePictureAddress;
+        }
+        else
+        {
+            ProfilePictureSource = profilePictureSource ?? ImageSource.FromFile("logolong.png");
+        }
         Location = location ?? new FirebaseLocation();
         PraiseCount = praiseCount ?? 0;
     }
@@ -142,9 +120,6 @@ public class Spot : INotifyPropertyChanged
         SpotID = spotData.SpotID;
         Name = spotData.Name;
         ProfilePictureSource = profilePictureSource;
-        PhoneNumber = spotData.PhoneNumber;
-        PhoneCountryCode = spotData.PhoneCountryCode;
-        Description = spotData.Description;
         Location = spotData.Location;
         PraiseCount = spotData.PraiseCount;
     }
@@ -153,9 +128,6 @@ public class Spot : INotifyPropertyChanged
     {
         Name = userData.Name;
         ProfilePictureSource = userData.ProfilePictureSource;
-        PhoneNumber = userData.PhoneNumber;
-        PhoneCountryCode = userData.PhoneCountryCode;
-        Description = userData.Description;
         Location = userData.Location;
         PraiseCount = userData.PraiseCount;
     }
@@ -182,12 +154,6 @@ public class Spot_Firebase
     public string SpotID { get; set; }
     [FirestoreProperty(nameof(Name))]
     public string Name { get; set; }
-    [FirestoreProperty(nameof(PhoneNumber))]
-    public string PhoneNumber { get; set; }
-    [FirestoreProperty(nameof(PhoneCountryCode))]
-    public string PhoneCountryCode { get; set; }
-    [FirestoreProperty(nameof(Description))]
-    public string Description { get; set; }
     [FirestoreProperty(nameof(Location))]
     public FirebaseLocation Location { get; set; }
     [FirestoreProperty(nameof(ProfilePictureAddress))]
@@ -199,32 +165,23 @@ public class Spot_Firebase
 
     public Spot_Firebase(string spotID,
         string name,
-        string phoneNumber,
-        string phoneCountryCode,
-        string description,
         FirebaseLocation location,
         string profilePictureAddress,
         int praiseCount,
-        List<string> searchTerms)
+        List<string>? searchTerms = null)
     {
         SpotID = spotID;
         Name = name;
-        PhoneNumber = phoneNumber;
-        PhoneCountryCode = phoneCountryCode;
-        Description = description;
         Location = location;
         ProfilePictureAddress = profilePictureAddress;
         PraiseCount = praiseCount;
-        SearchTerms = searchTerms;
+        SearchTerms = searchTerms ?? GenerateSearchTerms(name, location.Address);
     }
 
     public Spot_Firebase()
     {
         SpotID = "";
         Name = "";
-        PhoneNumber = "";
-        PhoneCountryCode = "";
-        Description = "";
         Location = new();
         ProfilePictureAddress = "";
         PraiseCount = 0;
@@ -235,9 +192,6 @@ public class Spot_Firebase
     {
         SpotID = spotData.SpotID;
         Name = spotData.Name;
-        PhoneNumber = spotData.PhoneNumber;
-        PhoneCountryCode = spotData.PhoneCountryCode;
-        Description = spotData.Description;
         Location = spotData.Location;
         ProfilePictureAddress = profilePictureAddress;
         PraiseCount = spotData.PraiseCount;

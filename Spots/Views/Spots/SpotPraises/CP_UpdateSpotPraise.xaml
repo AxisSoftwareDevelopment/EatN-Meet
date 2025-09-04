@@ -22,27 +22,40 @@
                         <Label Text=" *" VerticalOptions="Center" FontAttributes="Bold" TextColor="{DynamicResource ErrorAccent}" Margin="0,20,0,0"/>
                     </StackLayout>
                     <Entry x:Name="_entrySpotSearchBar"/>
-                    <Border StrokeShape="RoundRectangle 10" BackgroundColor="{DynamicResource Primary}">
-                        <CollectionView x:Name="_colSearchBarCollectionView" HorizontalOptions="FillAndExpand" ItemsSource="{Binding ItemSource}" SelectionMode="Single" Margin="0,3,0,0">
-                            <CollectionView.ItemTemplate>
-                                <DataTemplate>
-                                    <ContentView>
-                                        <Border Margin="5, 0, 5, 5" StrokeShape="RoundRectangle 5,5,5,5" HorizontalOptions="FillAndExpand" VerticalOptions="FillAndExpand" BackgroundColor="{DynamicResource Secondary}">
-                                            <StackLayout Orientation="Horizontal" BackgroundColor="{DynamicResource Secondary}" HorizontalOptions="FillAndExpand" Margin="5,5">
-                                                <Image Source="{Binding ProfilePictureSource}" HeightRequest="50" WidthRequest="50" BackgroundColor="{DynamicResource Primary}"/>
-                                                <StackLayout Orientation="Vertical" HorizontalOptions="FillAndExpand" Margin="5,5">
-                                                    <Label Text="{Binding SpotName}" FontSize="Medium" FontAttributes="Bold" TextColor="{DynamicResource SecondaryAccent}" MaxLines="2"/>
-                                                    <Label Text="{Binding Location.Address}" FontSize="Small" LineBreakMode="WordWrap" TextColor="{DynamicResource SecondaryAccent}" MaxLines="2"/>
+                    <Border x:Name="_borderSpotSearch" StrokeShape="RoundRectangle 10" BackgroundColor="{DynamicResource Primary}" IsVisible="False">
+                        <StackLayout Orientation="Vertical">
+                            <!-- Loading Indicator -->
+                            <Border x:Name="_borderActLoadingIndicator" Margin="5, 5, 5, 5" StrokeShape="RoundRectangle 5,5,5,5" HorizontalOptions="FillAndExpand" VerticalOptions="FillAndExpand" BackgroundColor="{DynamicResource Secondary}" IsVisible="{Binding LoadingResults, Mode=OneWay}">
+                                <ActivityIndicator 
+                                    x:Name="_actLoadingIndicator"
+                                    IsRunning="{Binding LoadingResults, Mode=OneWay}"
+                                    IsVisible="{Binding LoadingResults, Mode=OneWay}"
+                                    VerticalOptions="Center"
+                                    HorizontalOptions="Center"
+                                    Color="{DynamicResource Tertiary}"/>
+                            </Border>
+                            <!-- Search Results -->
+                            <CollectionView x:Name="_colSearchBarCollectionView" HorizontalOptions="FillAndExpand" ItemsSource="{Binding ItemSource}" SelectionMode="Single" Margin="0,3,0,0">
+                                <CollectionView.ItemTemplate>
+                                    <DataTemplate>
+                                        <ContentView>
+                                            <Border Margin="5, 0, 5, 5" StrokeShape="RoundRectangle 5,5,5,5" HorizontalOptions="FillAndExpand" VerticalOptions="FillAndExpand" BackgroundColor="{DynamicResource Secondary}">
+                                                <StackLayout Orientation="Horizontal" BackgroundColor="{DynamicResource Secondary}" HorizontalOptions="FillAndExpand" Margin="5,5">
+                                                    <Border StrokeShape="RoundRectangle 5,5,5,5" VerticalOptions="Center" StrokeThickness="0">
+                                                        <Image Source="{Binding ProfilePictureSource}" HeightRequest="50" WidthRequest="50" BackgroundColor="{DynamicResource Primary}" Aspect="AspectFill"/>
+                                                    </Border>
+                                                    <StackLayout Orientation="Vertical" HorizontalOptions="FillAndExpand" Margin="5,5">
+                                                        <Label Text="{Binding Name}" FontSize="Medium" FontAttributes="Bold" TextColor="{DynamicResource SecondaryAccent}" MaxLines="2"/>
+                                                        <Label Text="{Binding Location.Address}" FontSize="Small" LineBreakMode="WordWrap" TextColor="{DynamicResource SecondaryAccent}" MaxLines="2"/>
+                                                    </StackLayout>
                                                 </StackLayout>
-                                            </StackLayout>
-                                        </Border>
-                                    </ContentView>
-                                </DataTemplate>
-                            </CollectionView.ItemTemplate>
-                        </CollectionView>
+                                            </Border>
+                                        </ContentView>
+                                    </DataTemplate>
+                                </CollectionView.ItemTemplate>
+                            </CollectionView>
+                        </StackLayout>
                     </Border>
-                    <Button x:Name="_btnNewSpot" Text="{DynamicResource lbl_NewSpot}" BackgroundColor="{DynamicResource Tertiary}" TextColor="{DynamicResource PrimaryAccent}" VerticalOptions="Center"
-                        Clicked="_btnNewSpot_Clicked" Margin="0,5,0,0"/>
                     <Label x:Name="_lblBrand" Text="Brand" TextColor="{DynamicResource SecondaryAccent}" FontAttributes="Bold" HorizontalOptions="FillAndExpand" HorizontalTextAlignment="Center" Margin="0,20,0,0"/>
                     <!-- Profile Picture -->
                     <Border x:Name="_FrameSpotPicture" Padding="0" Margin="15,15,15,0" StrokeShape="RoundRectangle 500" BackgroundColor="{DynamicResource Tertiary}">

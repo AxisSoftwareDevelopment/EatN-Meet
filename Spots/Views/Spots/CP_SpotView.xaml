@@ -22,33 +22,47 @@
                     FontSize="15" VerticalOptions="Start" HorizontalTextAlignment="Center" Margin="20,0,20,0"/>
                 </StackLayout>
 
-                <StackLayout x:Name="_DescriptionLayout" Margin="25,0,25,5">
-                    <Label Text="{DynamicResource lbl_Description}" FontSize="18" TextColor="{DynamicResource Tertiary}" FontAttributes="Bold"/>
-                    <Label Text="{Binding Description}" TextColor="{DynamicResource SecondaryAccent}"/>
-                </StackLayout>
-
-                <StackLayout x:Name="_UserInformation" Margin="25,0,25,5">
-                    <Label Text="{DynamicResource lbl_PersonalInformation}" FontSize="18" TextColor="{DynamicResource Tertiary}" FontAttributes="Bold"/>
-                    <StackLayout Orientation="Horizontal">
-                        <Label Text="{DynamicResource lbl_RegisterEmailField}" TextColor="{DynamicResource Tertiary}" Margin="0,0,5,0"/>
-                        <Label Text="{Binding Email}" TextColor="{DynamicResource SecondaryAccent}"/>
-                    </StackLayout>
-                    <StackLayout Orientation="Horizontal">
-                        <Label Text="{DynamicResource lbl_PhoneField}" TextColor="{DynamicResource Tertiary}" Margin="0,0,5,0"/>
-                        <Label Text="{Binding FullPhoneNumber}" TextColor="{DynamicResource SecondaryAccent}"/>
-                    </StackLayout>
-                </StackLayout>
-
                 <StackLayout Orientation="Horizontal" Margin="25,0,25,5">
                     <Label Text="{DynamicResource lbl_Location}" TextColor="{DynamicResource Tertiary}" FontSize="18" FontAttributes="Bold" HorizontalOptions="Center" HorizontalTextAlignment="Center"/>
                 </StackLayout>
                 <maps:Map x:Name="_cvMiniMap" VerticalOptions="Start" HorizontalOptions="FillAndExpand" Margin="15,0,15,15" IsZoomEnabled="False" IsScrollEnabled ="False"/>
-                <Entry x:Name="_entryAddress" Placeholder="{DynamicResource lbl_AddressPlaceholder}" TextColor="{DynamicResource SecondaryAccent}" Margin="15,0"/>
-            
+
+                <!-- Praises -->
+                <CollectionView x:Name="_colClientPraises" VerticalOptions="FillAndExpand" HorizontalScrollBarVisibility="Never" VerticalScrollBarVisibility="Never" BackgroundColor="{DynamicResource BackgroundGrey}"
+                    ItemsSource="{Binding ItemSource}" SelectionMode="Single">
+                    <CollectionView.ItemTemplate>
+                        <DataTemplate>
+                            <ContentView>
+                                <Border Margin="5, 5, 5, 0" StrokeShape="RoundRectangle 5,5,5,5" HorizontalOptions="FillAndExpand" VerticalOptions="FillAndExpand" BackgroundColor="{DynamicResource Secondary}">
+                                    <StackLayout Orientation="Vertical">
+                                        <StackLayout Orientation="Horizontal" BackgroundColor="{DynamicResource Secondary}" HorizontalOptions="FillAndExpand" Margin="5,5">
+                                            <Grid>
+                                                <Border StrokeShape="RoundRectangle 5" StrokeThickness="0">
+                                                    <Image Grid.Column="0" Grid.Row="0" Source="{Binding SpotProfilePicture}" HeightRequest="125" WidthRequest="125" BackgroundColor="{DynamicResource Primary}"/>
+                                                </Border>
+                                                <Button Grid.Row="5" Grid.Column="0" Text="{Binding LikesCount}" Margin="5,0,5,5" HorizontalOptions="Start" VerticalOptions="End" BackgroundColor="{Binding LikeColor}" Clicked="LikeButtonClicked"/>
+                                            </Grid>
+                                            <StackLayout Orientation="Vertical" HorizontalOptions="FillAndExpand" Margin="5,5">
+                                                <Label Text="{Binding SpotFullName}" FontSize="Title" FontAttributes="Bold" TextColor="{DynamicResource SecondaryAccent}" MaxLines="2"/>
+                                                <StackLayout Orientation="Horizontal">
+                                                    <Label Text="{Binding AuthorFullName}" FontSize="Small" FontAttributes="Italic" HorizontalTextAlignment="End" HorizontalOptions="FillAndExpand" VerticalOptions="Center" TextColor="{DynamicResource Tertiary}" MaxLines="1" Margin="10,0,10,0"/>
+                                                    <Border x:Name="_FrameProfilePicture" Padding="0" StrokeShape="RoundRectangle 500" HeightRequest="25" WidthRequest="25" StrokeThickness="0">
+                                                        <Image Source="{Binding AuthorProfilePicture}" Aspect="AspectFill"/>
+                                                    </Border>
+                                                </StackLayout>
+                                                <Label Text="{Binding Comment}" FontSize="Body" LineBreakMode="WordWrap" TextColor="{DynamicResource SecondaryAccent}" MaxLines="2" Margin="10,0,10,0"/>
+                                                <Image Source="{Binding AttachedPicture}"/>
+                                            </StackLayout>
+                                        </StackLayout>
+                                    </StackLayout>
+                                </Border>
+                            </ContentView>
+                        </DataTemplate>
+                    </CollectionView.ItemTemplate>
+                </CollectionView>
             </StackLayout>
         </ScrollView>
         <StackLayout>
-            <Button x:Name="_btnEdit" Text="{DynamicResource lbl_EditSpotInfo}" Margin="35, 10, 35, 3" BackgroundColor="{DynamicResource Primary}" TextColor="{DynamicResource PrimaryAccent}" Clicked="EditPersonalInformation"/>
             <Button x:Name="_btnWriteReview" Text="{DynamicResource lbl_WriteSpotReview}" Margin="35, 3, 35, 10" BackgroundColor="{DynamicResource Primary}" TextColor="{DynamicResource PrimaryAccent}" Clicked="WriteSpotReview"/>
         </StackLayout>
     </StackLayout>

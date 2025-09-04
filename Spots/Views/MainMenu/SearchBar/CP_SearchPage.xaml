@@ -25,7 +25,14 @@
 
             <Border x:Name="_frameSearchResults" Margin="20,0,20,10" StrokeShape="RoundRectangle 15" BackgroundColor="{DynamicResource Secondary}" VerticalOptions="Start" IsVisible="False">
                 <StackLayout Orientation="Vertical" Margin="15">
-                    <!-- Users Search Results -->
+                    <ActivityIndicator 
+                        x:Name="_actLoadingIndicator"
+                        IsRunning="{Binding LoadingResults, Mode=OneWay}"
+                        IsVisible="{Binding LoadingResults, Mode=OneWay}"
+                        VerticalOptions="Center"
+                        HorizontalOptions="Center"
+                        Color="{DynamicResource Tertiary}"/>
+                    <!-- Search Results -->
                     <CollectionView x:Name="_colSearchBarCollectionView" HorizontalOptions="FillAndExpand" ItemsSource="{Binding ItemSource}" SelectionMode="Single">
                         <CollectionView.ItemTemplate>
                             <DataTemplate>

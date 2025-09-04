@@ -3,6 +3,7 @@ using System.ComponentModel;
 
 using eatMeet.Database;
 using eatMeet.Notifications;
+using eatMeet.GooglePlacesService;
 
 namespace eatMeet.Models;
 
@@ -10,6 +11,7 @@ public class SpotPraise : INotifyPropertyChanged
 {
     private ImageSource? _AuthorProfilePicture;
     private ImageSource? _SpotProfilePicture;
+    private string? _SpotProfilePictureAddress;
     private int _LikesCount = 0;
 
     public event PropertyChangedEventHandler? PropertyChanged;
@@ -41,6 +43,19 @@ public class SpotPraise : INotifyPropertyChanged
         private set
         {
             _SpotProfilePicture = value;
+        }
+    }
+    public string? SpotProfilePictureAddress
+    {
+        get
+        {
+            return _SpotProfilePictureAddress;
+        }
+
+        private set
+        {
+            _SpotProfilePictureAddress = value;
+            SpotProfilePicture = string.IsNullOrEmpty(value) ? ImageSource.FromFile("logolong.png") : ImageSource.FromUri(new(value));
         }
     }
     public FirebaseLocation SpotLocation { get; private set; }
@@ -90,6 +105,7 @@ public class SpotPraise : INotifyPropertyChanged
         DateTimeOffset creationDate,
         ImageSource? authorPicture = null,
         ImageSource? spotPicture = null,
+        string? spotPictureAddress = null,
         FirebaseLocation? spotLocation = null,
         string comment = "",
         ImageSource? attachedPicture = null,
@@ -103,6 +119,10 @@ public class SpotPraise : INotifyPropertyChanged
         SpotID = spotReviewed;
         SpotFullName = spotFullName;
         SpotProfilePicture = spotPicture;
+        if (spotPictureAddress != null)
+        {
+            SpotProfilePictureAddress = spotPictureAddress;
+        }
         SpotLocation = spotLocation ?? new();
         CreationDate = creationDate;
         Comment = comment;
@@ -114,7 +134,7 @@ public class SpotPraise : INotifyPropertyChanged
     public static async Task<SpotPraise> GetPraiseFromFirebaseObject(SpotPraise_Firebase praise)
     {
         Client author = await DatabaseManager.GetClientDataAsync(praise.AuthorID);
-        Spot spot = await DatabaseManager.GetSpotDataAsync(praise.SpotID);
+        Spot? spot = await DatabaseManager.GetSpotDataAsync(praise.SpotID);
         ImageSource? attachment = null;
 
         if (praise.AttachedPictureAddress.Length > 0)
@@ -138,18 +158,21 @@ public class SpotPraise : INotifyPropertyChanged
             {
                 SpotPraise_Firebase praise = praise_Firebase;
                 Client managed_author = author != null ? author : await DatabaseManager.GetClientDataAsync(praise.AuthorID);
-                Spot managed_spot = spot != null ? spot : await DatabaseManager.GetSpotDataAsync(praise.SpotID);
+                //Spot? managed_spot = spot != null ? spot : await DatabaseManager.GetSpotDataAsync(praise.SpotID);
+                Spot? managed_spot = spot != null ? spot : await GooglePlaces.GetPlaceDetails(praise.SpotID);
                 ImageSource? attachment = null;
-
-                if (praise.AttachedPictureAddress.Length > 0)
+                if (managed_spot != null)
                 {
-                    string downloadAddress = await DatabaseManager.GetImageDownloadLink(praise.AttachedPictureAddress);
-                    Uri imageUri = new(downloadAddress);
+                    if (praise.AttachedPictureAddress.Length > 0)
+                    {
+                        string downloadAddress = await DatabaseManager.GetImageDownloadLink(praise.AttachedPictureAddress);
+                        Uri imageUri = new(downloadAddress);
 
-                    attachment = ImageSource.FromUri(imageUri);
+                        attachment = ImageSource.FromUri(imageUri);
+                    }
+
+                    spotPraises.Add(new(praise, managed_author, managed_spot, attachment));
                 }
-
-                spotPraises.Add(new(praise, managed_author, managed_spot, attachment));
             }
         }
 

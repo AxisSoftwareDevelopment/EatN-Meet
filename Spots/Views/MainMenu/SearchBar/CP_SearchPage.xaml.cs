@@ -1,6 +1,7 @@
 using eatMeet.Models;
 using eatMeet.Utilities;
 using eatMeet.Database;
+using eatMeet.GooglePlacesService;
 
 namespace eatMeet;
 
@@ -14,18 +15,35 @@ public partial class CP_SearchPage : ContentPage
     private ESearchFocus CurrentFilterApplyed = ESearchFocus.CLIENT;
 	private readonly FeedContext<object> SearchResultsListContext = new();
     private readonly DebouncedAction<string> DebouncedSearch;
+    private bool _LoadingResults = false;
 
+    public bool LoadingResults
+    {
+        get => _LoadingResults;
+        set
+        {
+            _LoadingResults = value;
+            _frameSearchResults.IsVisible = _LoadingResults || SearchResultsListContext.ItemSource.Count > 0;
+            
+            OnPropertyChanged(nameof(LoadingResults));
+        }
+    }
     public string SearchTextInput { get; set; } = "";
-	public CP_SearchPage()
+    public CP_SearchPage()
 	{
 		InitializeComponent();
 		
-		_colSearchBarCollectionView.BindingContext = SearchResultsListContext;
+        _actLoadingIndicator.BindingContext = this;
+        _colSearchBarCollectionView.BindingContext = SearchResultsListContext;
         _colSearchBarCollectionView.SelectionChanged += _colSearchBarCollectionView_SelectionChanged;
 
         DebouncedSearch = new (RefreshSearchResults);
         _entrySearchTerms.TextChanged += async (sender, e) =>
         {
+            if(!LoadingResults)
+            {
+                LoadingResults = true;
+            }
             await DebouncedSearch.Run(e.NewTextValue);
         };
 
@@ -37,6 +55,10 @@ public partial class CP_SearchPage : ContentPage
     {
         if (e.Value)
         {
+            if (!LoadingResults)
+            {
+                LoadingResults = true;
+            }
             CurrentFilterApplyed = ESearchFocus.CLIENT;
             await DebouncedSearch.Run(_entrySearchTerms.Text);
         }
@@ -46,6 +68,10 @@ public partial class CP_SearchPage : ContentPage
     {
         if(e.Value)
         {
+            if (!LoadingResults)
+            {
+                LoadingResults = true;
+            }
             CurrentFilterApplyed = ESearchFocus.SPOT;
             await DebouncedSearch.Run(_entrySearchTerms.Text);
         }
@@ -76,17 +102,19 @@ public partial class CP_SearchPage : ContentPage
             List<object> list = [];
             if(CurrentFilterApplyed == ESearchFocus.CLIENT)
             {
-                List<Client> spots = await DatabaseManager.FetchClients_Filtered(nameSearchTerms: inputs, currentUsrID_ToAvoid: SessionManager.CurrentSession?.Client?.UserID);
+                List<Client> clients = await DatabaseManager.FetchClients_Filtered(nameSearchTerms: inputs, currentUsrID_ToAvoid: SessionManager.CurrentSession?.Client?.UserID);
                 // Remove duplicates by UserID
-                spots = spots.GroupBy(c => c.UserID).Select(g => g.First()).ToList();
-                spots.ForEach(list.Add);
+                clients = clients.GroupBy(c => c.UserID).Select(g => g.First()).ToList();
+                clients.ForEach(list.Add);
             }
             else
             {
-                List<Spot> spots = await DatabaseManager.FetchSpots_Filtered(filterParams: inputs);
-                // Remove duplicates by SpotID
-                spots = spots.GroupBy(s => s.SpotID).Select(g => g.First()).ToList();
-                spots.ForEach(list.Add);
+                Location? location = LocationManager.CurrentLocation ?? await LocationManager.GetUpdatedLocaionAsync();
+                if (location != null)
+                {
+                    List<Spot> spotList = await GooglePlaces.GetAllRestaurants(searchInput?.ToUpper().Trim() ?? "", location, 1000, 5);
+                    spotList.ForEach(list.Add);
+                }
             }
 
             SearchResultsListContext.RefreshFeed(list);
@@ -95,5 +123,7 @@ public partial class CP_SearchPage : ContentPage
         {
             SearchResultsListContext.RefreshFeed([]);
         }
+
+        LoadingResults = false;
     }
 }

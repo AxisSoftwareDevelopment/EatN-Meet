@@ -37,6 +37,13 @@ namespace eatMeet.GooglePlacesService
         }
 
         private static RequestParameters_GetAllRestaurants? inputParams;
+        
+        public static async Task<Spot?> GetPlaceDetails(string placeID)
+        {
+            string jsonInputParams = JsonSerializer.Serialize(new { placeID });
+            CloudFunctionsManager.Response_GetPlaceDetails response = await CloudFunctionsManager.CallMapsGetPlaceDetailsFunction(jsonInputParams);
+            return response.GetSpot();
+        }
 
         /// <summary>
         /// Retrieves all restaurants based on the provided text query, location, search radius, and page size.

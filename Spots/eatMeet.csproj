@@ -140,9 +140,6 @@
 	  <MauiXaml Update="Views\Spots\CP_SpotView.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
-	  <MauiXaml Update="Views\Spots\CP_UpdateSpot.xaml">
-	    <Generator>MSBuild:Compile</Generator>
-	  </MauiXaml>
 	  <MauiXaml Update="Views\Tables\CP_InviteUserToTable.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
