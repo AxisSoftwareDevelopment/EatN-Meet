@@ -76,23 +76,25 @@ public partial class CP_SpotPraise : ContentPage
 
     private async void LikeButtonClicked(object sender, EventArgs e)
     {
+        ((ImageButton)sender).IsEnabled = false;
         if (SessionManager.CurrentSession?.Client != null)
         {
-            bool? likedState = await ((SpotPraise)((Button)sender).BindingContext).LikeSwitch(SessionManager.CurrentSession.Client.UserID);
+            bool? likedState = await ((SpotPraise)((ImageButton)sender).BindingContext).LikeSwitch(SessionManager.CurrentSession.Client.UserID);
 
             if (likedState != null)
             {
                 if ((bool)likedState)
                 {
-                    ((SpotPraise)((Button)sender).BindingContext).Likes.Add(SessionManager.CurrentSession.Client.UserID);
-                    ((SpotPraise)((Button)sender).BindingContext).LikesCount++;
+                    ((SpotPraise)((ImageButton)sender).BindingContext).Likes.Add(SessionManager.CurrentSession.Client.UserID);
+                    ((SpotPraise)((ImageButton)sender).BindingContext).LikesCount++;
                 }
                 else
                 {
-                    ((SpotPraise)((Button)sender).BindingContext).Likes.Remove(SessionManager.CurrentSession.Client.UserID);
-                    ((SpotPraise)((Button)sender).BindingContext).LikesCount--;
+                    ((SpotPraise)((ImageButton)sender).BindingContext).Likes.Remove(SessionManager.CurrentSession.Client.UserID);
+                    ((SpotPraise)((ImageButton)sender).BindingContext).LikesCount--;
                 }
             }
         }
+        ((ImageButton)sender).IsEnabled = true;
     }
 }

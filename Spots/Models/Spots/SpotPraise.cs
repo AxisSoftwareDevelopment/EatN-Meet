@@ -68,15 +68,15 @@ public class SpotPraise : INotifyPropertyChanged
         set
         {
             _LikesCount = value;
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(LikeColor)));
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(LikeSource)));
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(LikesCount)));
         }
     }
-    public string LikeColor
+    public string LikeSource
     {
         get
         {
-            return Likes.Contains(SessionManager.CurrentSession?.Client?.UserID ?? "NULL") ? "#FFA500" : "#6E6E6E";
+            return Likes.Contains(SessionManager.CurrentSession?.Client?.UserID ?? "NULL") ? "likeon.png" : "likeoff.png";
         }
     }
 

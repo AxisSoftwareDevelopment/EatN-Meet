@@ -20,7 +20,7 @@
                                         <Border StrokeThickness="0" StrokeShape="RoundRectangle 5">
                                             <Image Source="{Binding SpotProfilePicture}" HeightRequest="125" WidthRequest="125" BackgroundColor="{DynamicResource Primary}"/>
                                         </Border>
-                                        <Button Grid.Row="5" Grid.Column="0" Text="{Binding LikesCount}" Margin="5,0,5,5" HorizontalOptions="Start" VerticalOptions="End" BackgroundColor="{Binding LikeColor}" Clicked="LikeButtonClicked"/>
+                                        <ImageButton Grid.Row="5" Grid.Column="0" Source="{Binding LikeSource}" HeightRequest="35" WidthRequest="35" Margin="5,0,5,5" HorizontalOptions="Start" VerticalOptions="End" Clicked="LikeButtonClicked"/>
                                     </Grid>
                                     <StackLayout Orientation="Vertical" HorizontalOptions="FillAndExpand" Margin="5,5">
                                         <Label Text="{Binding SpotFullName}" FontSize="Title" FontAttributes="Bold" TextColor="{DynamicResource SecondaryAccent}" MaxLines="2"/>

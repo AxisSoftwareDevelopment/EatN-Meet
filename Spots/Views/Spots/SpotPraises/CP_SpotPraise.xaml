@@ -30,7 +30,7 @@
                         </Border>
                     </StackLayout>
                     <!-- Like Button -->
-                    <Button Text="{Binding LikesCount}"  HorizontalOptions="EndAndExpand" VerticalOptions="End" BackgroundColor="{Binding LikeColor}" Clicked="LikeButtonClicked"/>
+                    <ImageButton Source="{Binding LikeSource}" HeightRequest="50" WidthRequest="50"  HorizontalOptions="EndAndExpand" VerticalOptions="End" Clicked="LikeButtonClicked"/>
                     <!-- Review Comment -->
                     <Label Text="{DynamicResource lbl_Comment}" TextColor="{DynamicResource Tertiary}" HorizontalOptions="FillAndExpand" HorizontalTextAlignment="Start" Margin="0, 5"/>
                     <Border StrokeShape="RoundRectangle 2">
