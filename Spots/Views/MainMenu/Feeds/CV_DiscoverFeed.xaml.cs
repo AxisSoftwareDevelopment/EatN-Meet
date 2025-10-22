@@ -4,6 +4,7 @@ using eatMeet.Database;
 using eatMeet.Models;
 using eatMeet.ResourceManager;
 using eatMeet.Utilities;
+using Map = Microsoft.Maui.Controls.Maps.Map;
 
 namespace eatMeet;
 
@@ -45,22 +46,7 @@ public partial class CV_DiscoverFeed : ContentView
         filterSectionTapGestureRecognizer.Tapped += CV_DiscoverFeed_FiltersTapped;
         _FiltersHeaderBar.GestureRecognizers.Add(filterSectionTapGestureRecognizer);
 
-        // Minimap
-        DisplayInfo displayInfo = DeviceDisplay.MainDisplayInfo;
-
-        if (LocationManager.CurrentLocation != null)
-        {
-            CurrentLocation = SelectedLocation = new FirebaseLocation(LocationManager.CurrentLocation);
-            _cvMiniMap.Pins.Clear();
-            _cvMiniMap.MoveToRegion(new MapSpan(LocationManager.CurrentLocation, 0.01, 0.01));
-            _cvMiniMap.Pins.Add(new Pin() { Label = "", Location = LocationManager.CurrentLocation });
-        }
-        else
-        {
-            LocationManager.UpdateLocationAsync().ConfigureAwait(false);
-        }
-        _cvMiniMap.HeightRequest = displayInfo.Height * 0.025;
-        _cvMiniMap.WidthRequest = displayInfo.Height * 0.05;
+        
 
         // Filter zones
         _radioClientsFilter.CheckedChanged += _radioSubjectFilter_CheckedChanged;
@@ -70,7 +56,43 @@ public partial class CV_DiscoverFeed : ContentView
         _slayoutOrderFilters.IsVisible = false;
         #endregion
 
+        this.Loaded += CV_DiscoverFeed_Loaded;
+    }
+
+    private void CV_DiscoverFeed_Loaded(object? sender, EventArgs e)
+    {
+        // Minimap
+        Task.Run(() =>
+        {
+            Map miniMap = new Map();
+            miniMap.HorizontalOptions = LayoutOptions.FillAndExpand;
+            miniMap.IsZoomEnabled = false;
+            miniMap.IsScrollEnabled = false;
+            DisplayInfo displayInfo = DeviceDisplay.MainDisplayInfo;
+
+            if (LocationManager.CurrentLocation != null)
+            {
+                CurrentLocation = SelectedLocation = new FirebaseLocation(LocationManager.CurrentLocation);
+                miniMap.Pins.Clear();
+                miniMap.MoveToRegion(new MapSpan(LocationManager.CurrentLocation, 0.01, 0.01));
+                miniMap.Pins.Add(new Pin() { Label = "", Location = LocationManager.CurrentLocation });
+            }
+            else
+            {
+                LocationManager.UpdateLocationAsync().ConfigureAwait(false);
+            }
+            miniMap.HeightRequest = displayInfo.Height * 0.025;
+            miniMap.WidthRequest = displayInfo.Height * 0.05;
+
+            MainThread.BeginInvokeOnMainThread(() =>
+            {
+                _cvMiniMap.Content = miniMap;
+            });
+        });
+
         #region CollectionView
+        // Collection view
+        _refreshView.IsRefreshing = true;
         _colFeed.BindingContext = CurrentFeedContext;
         _refreshView.Command = new Command(async () =>
         {
@@ -80,12 +102,9 @@ public partial class CV_DiscoverFeed : ContentView
         _colFeed.RemainingItemsThreshold = 1;
         _colFeed.RemainingItemsThresholdReached += OnItemThresholdReached;
         _colFeed.SelectionChanged += _colFeed_SelectionChanged;
-
-        MainThread.BeginInvokeOnMainThread(async () =>
-        {
-            await RefreshFeed();
-        });
         #endregion
+
+        this.Loaded -= CV_DiscoverFeed_Loaded;
     }
 
     private void _radioSubjectFilter_CheckedChanged(object? sender, CheckedChangedEventArgs e)
@@ -123,7 +142,7 @@ public partial class CV_DiscoverFeed : ContentView
 
     private void _cvMiniMap_MapClicked(object? sender, EventArgs e)
     {
-        Navigation.PushAsync(new CP_MapLocationSelector(() => _cvMiniMap.VisibleRegion, "Selected Area"));
+        Navigation.PushAsync(new CP_MapLocationSelector(() => ((Map)_cvMiniMap.Content).VisibleRegion, "Selected Area"));
     }
 
     private void CV_DiscoverFeed_FiltersTapped(object? sender, TappedEventArgs e)
@@ -159,12 +178,18 @@ public partial class CV_DiscoverFeed : ContentView
 
     private async Task RefreshFeed()
     {
-        CurrentFeedContext.RefreshFeed(await FetchItems(false));
+        var items = await FetchItems(false);
+
+        MainThread.BeginInvokeOnMainThread(() =>
+        {
+            CurrentFeedContext.RefreshFeed(items);
+        });
     }
 
     private async void OnItemThresholdReached(object? sender, EventArgs e)
     {
         CurrentFeedContext.AddElements(await FetchItems(true));
+        _refreshView.IsRefreshing = false;
     }
 
     private async Task<List<object>> FetchItems(bool bUseLastItem)

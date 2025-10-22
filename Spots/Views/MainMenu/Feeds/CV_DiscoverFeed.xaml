@@ -34,7 +34,7 @@
                                     <RadioButton x:Name="_radioCurrentLoc" GroupName="Location" Content="{DynamicResource lbl_CurrentLocation}" FontAttributes="Italic" HorizontalOptions="FillAndExpand" BackgroundColor="{DynamicResource TertiaryDarker}" TextColor="{DynamicResource PrimaryAccent}" IsChecked="True"/>
                                     <RadioButton x:Name="_radioSelectedLoc" GroupName="Location" FontAttributes="Italic" BackgroundColor="{DynamicResource TertiaryDarker}" TextColor="{DynamicResource PrimaryAccent}"/>
                                     <StackLayout Orientation="Vertical" HorizontalOptions="FillAndExpand" Margin="-15, 0, 15, 0">
-                                        <maps:Map x:Name="_cvMiniMap" HorizontalOptions="FillAndExpand" IsZoomEnabled="False" IsScrollEnabled ="False"/>
+                                        <ContentView x:Name="_cvMiniMap"/>
                                         <Button Clicked="_cvMiniMap_MapClicked" Text="{DynamicResource lbl_SelectLocation}" BackgroundColor="{DynamicResource Primary}" TextColor="{DynamicResource PrimaryAccent}" HorizontalOptions="FillAndExpand" />
                                     </StackLayout>
                                 </StackLayout>
