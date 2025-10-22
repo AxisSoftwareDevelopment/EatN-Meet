@@ -6,7 +6,8 @@ namespace eatMeet;
 
 public partial class CV_MainFeed : ContentView
 {
-	private readonly FeedContext<SpotPraise> CurrentFeedContext = new();
+    private readonly FeedContext<SpotPraise> CurrentFeedContext = new();
+    private int _lastFetchedCount = 1; // To ensure initial fetchs
 
 	public CV_MainFeed()
 	{
@@ -23,11 +24,6 @@ public partial class CV_MainFeed : ContentView
         _colFeed.SelectionChanged += _colFeed_SelectionChanged;
 
         _refreshView.IsRefreshing = true;
-        Task.Run(async () =>
-        {
-            await RefreshFeed();
-            _refreshView.IsRefreshing = false;
-        });
     }
 
     private void _colFeed_SelectionChanged(object? sender, SelectionChangedEventArgs e)
@@ -46,14 +42,24 @@ public partial class CV_MainFeed : ContentView
 
     private async Task RefreshFeed()
 	{
-        var items = await FetchPraises();
+        List<SpotPraise> items = await FetchPraises();
 
         MainThread.BeginInvokeOnMainThread(() => CurrentFeedContext.RefreshFeed(items));
+        _lastFetchedCount = items.Count;
     }
 
 	private async void OnItemThresholdReached(object? sender, EventArgs e)
-	{
-        CurrentFeedContext.AddElements(await FetchPraises(CurrentFeedContext.LastItemFetched));
+    {
+        // This is to prevent multiple fetches when there are no more items to fetch
+        if (_lastFetchedCount == 0)
+        {
+            return;
+        }
+        _lastFetchedCount = 0;
+
+        List<SpotPraise> items = await FetchPraises(CurrentFeedContext.LastItemFetched);
+        CurrentFeedContext.AddElements(items);
+        _lastFetchedCount = items.Count;
     }
 
 	private async Task<List<SpotPraise>> FetchPraises(SpotPraise? lastItemFetched = null)

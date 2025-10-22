@@ -33,7 +33,8 @@ public static class DatabaseManager
     public static async Task<Client> LogInUserAsync(string email, string password, FirebaseLocation? lastLocation = null, bool getUser = true)
     {
         string[] userSignInMethods = await CrossFirebaseAuth.Current.FetchSignInMethodsAsync(email);
-
+        userSignInMethods ??= [];
+        
         if (userSignInMethods.Length == 0 || !userSignInMethods.Contains("password"))
             throw new FirebaseAuthException(FIRAuthError.InvalidEmail, "Custom Exception -> There was no 'email and password' login method, or none at all.");
 
@@ -347,8 +348,7 @@ public static class DatabaseManager
     {
         List<SpotPraise> spotPraises = [];
         // Show personal praises too
-        List<string> praiseAuthorIDs = client.Followed;
-        praiseAuthorIDs.Add(client.UserID);
+        List<string> praiseAuthorIDs = [.. client.Followed, client.UserID];
 
         // Query Filters
         const int maxItemsToFetch = 25;
@@ -356,7 +356,7 @@ public static class DatabaseManager
         string? lastItemFetchedID = lastPraise?.PraiseID ?? null;
         string orderBy = nameof(SpotPraise_Firebase.CreationDate);
 
-        if (client.FollowedCount > 0)
+        if (praiseAuthorIDs.Count > 0)
         {
             List<SpotPraise_Firebase> praises_Firebase = await FirestoreManager.QueryFiltered<SpotPraise_Firebase>(COLLECTION_PRAISES,
                 maxItems: maxItemsToFetch,
