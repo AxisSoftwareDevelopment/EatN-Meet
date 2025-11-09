@@ -18,6 +18,7 @@ public partial class CV_DiscoverFeed : ContentView
     private FirebaseLocation? CurrentLocation;
     private FirebaseLocation? SelectedLocation;
     private double FilterSectionHeight = FILTER_SECTION_HEIGHT_MIN;
+    private DisplayInfo displayInfo = DeviceDisplay.Current.MainDisplayInfo;
     private string[] ErrorLables = ["lbl_Error", "lbl_UnhandledError", "txt_LocationError_CouldntCalculateLocation", "lbl_Ok"];
 	public CV_DiscoverFeed()
 	{
@@ -68,7 +69,6 @@ public partial class CV_DiscoverFeed : ContentView
             miniMap.HorizontalOptions = LayoutOptions.FillAndExpand;
             miniMap.IsZoomEnabled = false;
             miniMap.IsScrollEnabled = false;
-            DisplayInfo displayInfo = DeviceDisplay.MainDisplayInfo;
 
             if (LocationManager.CurrentLocation != null)
             {
@@ -82,7 +82,7 @@ public partial class CV_DiscoverFeed : ContentView
                 LocationManager.UpdateLocationAsync().ConfigureAwait(false);
             }
             miniMap.HeightRequest = displayInfo.Height * 0.025;
-            miniMap.WidthRequest = displayInfo.Height * 0.05;
+            miniMap.WidthRequest = displayInfo.Height * 0.045;
 
             MainThread.BeginInvokeOnMainThread(() =>
             {
@@ -92,7 +92,6 @@ public partial class CV_DiscoverFeed : ContentView
 
         #region CollectionView
         // Collection view
-        _refreshView.IsRefreshing = true;
         _colFeed.BindingContext = CurrentFeedContext;
         _refreshView.Command = new Command(async () =>
         {
@@ -102,6 +101,8 @@ public partial class CV_DiscoverFeed : ContentView
         _colFeed.RemainingItemsThreshold = 1;
         _colFeed.RemainingItemsThresholdReached += OnItemThresholdReached;
         _colFeed.SelectionChanged += _colFeed_SelectionChanged;
+
+        Task.Run(RefreshFeed);
         #endregion
 
         this.Loaded -= CV_DiscoverFeed_Loaded;
