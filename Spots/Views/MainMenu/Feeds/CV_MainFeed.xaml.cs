@@ -18,9 +18,11 @@ public partial class CV_MainFeed : ContentView
 		{
 			await RefreshFeed();
 			_refreshView.IsRefreshing = false;
-		});
+
+            _colFeed.RemainingItemsThresholdReached -= OnItemThresholdReached;
+            _colFeed.RemainingItemsThresholdReached += OnItemThresholdReached;
+        });
 		_colFeed.RemainingItemsThreshold = 1;
-		_colFeed.RemainingItemsThresholdReached += OnItemThresholdReached;
         _colFeed.SelectionChanged += _colFeed_SelectionChanged;
 
         _refreshView.IsRefreshing = true;

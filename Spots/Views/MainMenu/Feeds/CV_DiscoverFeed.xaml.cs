@@ -57,13 +57,8 @@ public partial class CV_DiscoverFeed : ContentView
         _slayoutOrderFilters.IsVisible = false;
         #endregion
 
-        this.Loaded += CV_DiscoverFeed_Loaded;
-    }
-
-    private void CV_DiscoverFeed_Loaded(object? sender, EventArgs e)
-    {
         // Minimap
-        Task.Run(() =>
+        Task.Run(async () =>
         {
             Map miniMap = new Map();
             miniMap.HorizontalOptions = LayoutOptions.FillAndExpand;
@@ -79,7 +74,7 @@ public partial class CV_DiscoverFeed : ContentView
             }
             else
             {
-                LocationManager.UpdateLocationAsync().ConfigureAwait(false);
+                await LocationManager.UpdateLocationAsync();
             }
             miniMap.HeightRequest = displayInfo.Height * 0.025;
             miniMap.WidthRequest = displayInfo.Height * 0.045;
@@ -90,6 +85,13 @@ public partial class CV_DiscoverFeed : ContentView
             });
         });
 
+        this.Loaded += CV_DiscoverFeed_Loaded;
+    }
+
+    private void CV_DiscoverFeed_Loaded(object? sender, EventArgs e)
+    {
+        
+
         #region CollectionView
         // Collection view
         _colFeed.BindingContext = CurrentFeedContext;
@@ -97,12 +99,13 @@ public partial class CV_DiscoverFeed : ContentView
         {
             await RefreshFeed();
             _refreshView.IsRefreshing = false;
+            _colFeed.RemainingItemsThresholdReached -= OnItemThresholdReached;
+            _colFeed.RemainingItemsThresholdReached += OnItemThresholdReached;
         });
         _colFeed.RemainingItemsThreshold = 1;
-        _colFeed.RemainingItemsThresholdReached += OnItemThresholdReached;
         _colFeed.SelectionChanged += _colFeed_SelectionChanged;
 
-        Task.Run(RefreshFeed);
+        _refreshView.IsRefreshing = true;
         #endregion
 
         this.Loaded -= CV_DiscoverFeed_Loaded;

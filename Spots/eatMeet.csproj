@@ -40,12 +40,12 @@
 	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net9.0-android|AnyCPU'">
 	  <ApplicationId>com.axissoftwaredevelopment.eatMeet</ApplicationId>
 	  <DebugType>portable</DebugType>
-	  <ApplicationDisplayVersion>1.0.8</ApplicationDisplayVersion>
+	  <ApplicationDisplayVersion>1.0.10</ApplicationDisplayVersion>
 	</PropertyGroup>
 	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net9.0-android|AnyCPU'">
 	  <ApplicationId>com.axissoftwaredevelopment.eatMeet</ApplicationId>
 	  <DebugType>portable</DebugType>
-	  <ApplicationDisplayVersion>1.0.8</ApplicationDisplayVersion>
+	  <ApplicationDisplayVersion>1.0.10</ApplicationDisplayVersion>
 	</PropertyGroup>
 	<PropertyGroup Condition="'$(TargetFramework)'=='net9.0-ios'">
 	  <CodesignKey>Apple Distribution: GASTON TEJEDA (GK59P3HJTD)</CodesignKey>
@@ -54,16 +54,16 @@
 	</PropertyGroup>
 	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net9.0-ios|AnyCPU'">
 	  <DebugType>portable</DebugType>
-	  <ApplicationDisplayVersion>1.0.8</ApplicationDisplayVersion>
+	  <ApplicationDisplayVersion>1.0.10</ApplicationDisplayVersion>
 	</PropertyGroup>
 	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net9.0-ios|AnyCPU'">
 	  <DebugType>portable</DebugType>
-	  <ApplicationDisplayVersion>1.0.8</ApplicationDisplayVersion>
+	  <ApplicationDisplayVersion>1.0.10</ApplicationDisplayVersion>
 	</PropertyGroup>
 
 	<ItemGroup>
 		<!-- App Icon -->
-		<MauiIcon Include="Resources\AppIcon\appicon.svg" ForegroundFile="Resources\AppIcon\appiconfg.svg" Color="#512BD4" />
+		<MauiIcon Include="Resources\AppIcon\appicon.svg" ForegroundFile="Resources\AppIcon\appiconfg.svg" Color="#FFA500" />
 
 		<!-- Splash Screen -->
 		<MauiSplashScreen Include="Resources\Images\logoshort.png" BaseSize="128,128" Resize="false" />
@@ -156,5 +156,6 @@
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
 	</ItemGroup>
+
 
 </Project>
