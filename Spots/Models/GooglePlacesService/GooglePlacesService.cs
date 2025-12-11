@@ -55,6 +55,11 @@ namespace eatMeet.GooglePlacesService
         /// <returns></returns>
         public static async Task<List<Spot>> GetAllRestaurants(string textQuery, Location location, int searchRadius, int? pageSize = null)
         {
+            if(string.IsNullOrEmpty(textQuery))
+            {
+                return [];
+            }
+
             inputParams = new RequestParameters_GetAllRestaurants
             {
                 TextQuery = textQuery,
