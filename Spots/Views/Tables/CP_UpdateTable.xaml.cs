@@ -14,7 +14,7 @@ public partial class CP_UpdateTable : ContentPage
 	private Table _Table;
     private bool _inputsAreLocked;
     private bool _profilePictureChanged = false;
-    private bool _locationChanged = false;
+    private Location? _location;
     private ImageFile? _profilePictureFile = null;
     public CP_UpdateTable(Table? table = null)
 	{
@@ -28,13 +28,16 @@ public partial class CP_UpdateTable : ContentPage
 
         _FrameTablePicture.HeightRequest = tablePictureDimensions;
         _FrameTablePicture.WidthRequest = tablePictureDimensions;
-        _cvMiniMap.HeightRequest = tablePictureDimensions * 0.75;
+        _cvMiniMap.HeightRequest = tablePictureDimensions * 2;
         _cvMiniMap.MapClicked += _cvMiniMap_MapClicked;
     }
 
     protected override async void OnAppearing()
     {
         base.OnAppearing();
+
+        if (_location != null)
+            return;
 
         Location? location = LocationManager.CurrentLocation;
         if (location == null)
@@ -55,7 +58,7 @@ public partial class CP_UpdateTable : ContentPage
     {
         if (!_inputsAreLocked)
         {
-            Navigation.PushAsync(new CP_MapLocationSelector(() => _cvMiniMap.VisibleRegion, _entryAddress.Text ?? ""));
+            Navigation.PushAsync(new CP_MapLocationSelector(_cvMiniMap.VisibleRegion, _entryAddress.Text ?? "", SetSelectedLocation));
         }
     }
 
@@ -70,7 +73,7 @@ public partial class CP_UpdateTable : ContentPage
         Table newData = new Table()
         {
             TableName = ToTitleCase(_entryTableName.Text.Trim()),
-            Location = new FirebaseLocation(_entryAddress.Text.Trim(), 0, 0),
+            Location = new FirebaseLocation(_entryAddress.Text.Trim(), _location?.Latitude ?? _Table.Location.Latitude, _location?.Longitude ?? _Table.Location.Longitude),
             Description = _editorDescription.Text.Trim(),
         };
 
@@ -119,6 +122,18 @@ public partial class CP_UpdateTable : ContentPage
     }
 
     #region Utilities
+    private void SetSelectedLocation(Location location, string address)
+    {
+        _cvMiniMap.Pins.Clear();
+        _cvMiniMap.Pins.Add(new Pin()
+        {
+            Label = address,
+            Location = location
+        });
+        _cvMiniMap.MoveToRegion(new MapSpan(location, 0.01, 0.01));
+        _entryAddress.Text = address;
+        _location = location;
+    }
     private void LockInputs()
     {
         _btnLoadImage.IsEnabled = false;
@@ -193,7 +208,7 @@ public partial class CP_UpdateTable : ContentPage
     {
         if (_profilePictureChanged)
             return true;
-        if (_locationChanged)
+        if (_location != null)
             return true;
         if (_Table.TableName != table.TableName)
             return true;

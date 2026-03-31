@@ -11,8 +11,8 @@
     </NavigationPage.TitleView>
 
     <ContentPage.Content>
-        <Border Margin="20, 0, 20, 20" StrokeShape="RoundRectangle 50,50,50,50" HorizontalOptions="FillAndExpand" VerticalOptions="FillAndExpand" BackgroundColor="{DynamicResource Secondary}">
-            <StackLayout Margin="10, 10" VerticalOptions="FillAndExpand">
+        <Border Margin="20, 0, 20, 20" StrokeShape="RoundRectangle 50,50,50,50" HorizontalOptions="FillAndExpand" BackgroundColor="{DynamicResource Secondary}">
+            <StackLayout Margin="10, 10, 10, 0" VerticalOptions="FillAndExpand">
                 <ScrollView x:Name="_scrollviewMain" VerticalOptions="FillAndExpand" HorizontalOptions="FillAndExpand" HorizontalScrollBarVisibility="Never" VerticalScrollBarVisibility="Never">
                     <StackLayout>
                         <!-- Error Message -->
@@ -39,7 +39,7 @@
                             <Label Text="{DynamicResource lbl_Location}" TextColor="{DynamicResource SecondaryAccent}" HorizontalOptions="Center" HorizontalTextAlignment="Center"/>
                             <Label Text=" *" VerticalOptions="Center" FontAttributes="Bold" TextColor="{DynamicResource ErrorAccent}"/>
                         </StackLayout>
-                        <maps:Map x:Name="_cvMiniMap" HorizontalOptions="FillAndExpand" VerticalOptions="FillAndExpand" Margin="15,15,15,15" IsZoomEnabled="False" IsScrollEnabled ="False"/>
+                        <maps:Map x:Name="_cvMiniMap" HorizontalOptions="FillAndExpand" VerticalOptions="FillAndExpand" Margin="15,5,15,5" IsZoomEnabled="False" IsScrollEnabled ="False"/>
                         <Entry x:Name="_entryAddress" Placeholder="{DynamicResource lbl_AddressPlaceholder}" TextColor="{DynamicResource SecondaryAccent}"/>
                         <!-- Description -->
                         <Label Text="{DynamicResource lbl_DescriptionField}" TextColor="{DynamicResource SecondaryAccent}" HorizontalOptions="FillAndExpand" HorizontalTextAlignment="Start"/>
@@ -47,13 +47,10 @@
                         <!-- Note -->
                         <Label Text="{DynamicResource txt_NotePersonalInfo}" TextColor="{DynamicResource Tertiary}" HorizontalOptions="FillAndExpand" HorizontalTextAlignment="Center"
                            FontAttributes="Italic"/>
+                        <Button x:Name="_btnSave" CornerRadius="15" BackgroundColor="{DynamicResource Tertiary}" TextColor="{DynamicResource PrimaryAccent}" FontSize="Medium"
+                            Text="{DynamicResource lbl_Save}" Margin="20,20,20,20" Clicked="SaveOnCLickAsync"/>
                     </StackLayout>
                 </ScrollView>
-
-                <StackLayout Orientation="Horizontal" HorizontalOptions="Center">
-                    <Button x:Name="_btnSave" CornerRadius="15" BackgroundColor="{DynamicResource Tertiary}" TextColor="{DynamicResource PrimaryAccent}" FontSize="Medium"
-                       Text="{DynamicResource lbl_Save}" Margin="20,20,20,20" Clicked="SaveOnCLickAsync"/>
-                </StackLayout>
             </StackLayout>
         </Border>
     </ContentPage.Content>

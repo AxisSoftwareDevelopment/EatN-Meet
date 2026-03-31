@@ -2,6 +2,7 @@ using eatMeet.Database;
 using eatMeet.GooglePlacesService;
 using eatMeet.Models;
 using eatMeet.Utilities;
+using Java.Lang;
 using Microsoft.Maui.Controls.Maps;
 using Microsoft.Maui.Maps;
 
@@ -9,7 +10,9 @@ namespace eatMeet;
 
 public partial class CP_MapLocationSelector : ContentPage
 {
-	private Func<MapSpan?> _MapSpanGetter;
+    private Action<Location, string>? _setSelectedLocation;
+    private string _selectedAddress;
+    private Location _selectedLocation;
     private readonly FeedContext<Spot> SearchResultsListContext = new();
     private readonly DebouncedAction<string> DebouncedSearch;
     private bool _LoadingResults = false;
@@ -27,9 +30,11 @@ public partial class CP_MapLocationSelector : ContentPage
     }
     public string SearchTextInput { get; set; } = "";
 
-    public CP_MapLocationSelector(Func<MapSpan?> mapSpanGetter, string address = "")
+    public CP_MapLocationSelector(MapSpan? mapSpan, string address = "", Action<Location, string>? setSelectedLocation = null)
 	{
 		InitializeComponent();
+
+        _setSelectedLocation = setSelectedLocation;
 
         _actLoadingIndicator.BindingContext = this;
         _colSearchBarCollectionView.BindingContext = SearchResultsListContext;
@@ -44,26 +49,33 @@ public partial class CP_MapLocationSelector : ContentPage
             }
             await DebouncedSearch.Run(e.NewTextValue);
         };
-
-        _MapSpanGetter = mapSpanGetter;
         _lblSelectedAddress.Text = address;
-
-        MapSpan? mapSpan = _MapSpanGetter();
         if(mapSpan == null)
         {
             return;
         }
+        _selectedAddress = address?? "";
+        _selectedLocation = mapSpan.Center;
+
 
         _cvMap.MoveToRegion(mapSpan);
         _cvMap.Pins.Clear();
         _cvMap.Pins.Add(new Pin()
         {
-            Label = address,
-            Location = mapSpan.Center
+            Label = _selectedAddress,
+            Location = _selectedLocation
         });
 
         _cvMap.MapClicked += _cvMap_MapClicked;
+
+        _btnSelectLocation.Clicked += _btnSelectLocation_Clicked;
 	}
+
+    private void _btnSelectLocation_Clicked(object? sender, EventArgs e)
+    {
+        _setSelectedLocation?.Invoke(_selectedLocation, _selectedAddress);
+        Navigation.PopAsync();
+    }
 
     private async void _cvMap_MapClicked(object? sender, MapClickedEventArgs e)
     {
@@ -71,11 +83,13 @@ public partial class CP_MapLocationSelector : ContentPage
         if (address != null)
         {
             _cvMap.Pins.Clear();
-            _lblSelectedAddress.Text = address ?? "";
+            _selectedAddress = address;
+            _selectedLocation = e.Location;
+            _lblSelectedAddress.Text = _selectedAddress;
             _cvMap.Pins.Add(new Pin()
             {
-                Label = address ?? "",
-                Location = e.Location
+                Label = _selectedAddress,
+                Location = _selectedLocation
             });
         }
     }
@@ -86,16 +100,15 @@ public partial class CP_MapLocationSelector : ContentPage
         {
             //await Navigation.PushAsync(new CP_SpotView((Spot)e.CurrentSelection[0]));
             Spot spot = (Spot)e.CurrentSelection[0];
-            Pin pin = new Pin()
-            {
-                Label = spot.Location.Address,
-                Location = new Location(spot.Location.Latitude, spot.Location.Longitude)
-            };
-            _lblSelectedAddress.Text = pin.Label;
+            _selectedAddress = spot.Location.Address;
+            _selectedLocation = new Location(spot.Location.Latitude, spot.Location.Longitude);
+            _lblSelectedAddress.Text = _selectedAddress;
             _cvMap.Pins.Clear();
-            _cvMap.Pins.Add(pin);
-            MapSpan span = new MapSpan(pin.Location, 0.01, 0.01);
-            _cvMap.MoveToRegion(span);
+            _cvMap.Pins.Add(new Pin() {
+                Label = _selectedAddress,
+                Location = _selectedLocation
+            });
+            _cvMap.MoveToRegion(new MapSpan(_selectedLocation, 0.01, 0.01));
             _entrySearchTerms.Text = "";
             _colSearchBarCollectionView.SelectedItem = null;
         }

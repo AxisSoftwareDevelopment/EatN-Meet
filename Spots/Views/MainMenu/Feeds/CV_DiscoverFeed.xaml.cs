@@ -88,6 +88,16 @@ public partial class CV_DiscoverFeed : ContentView
         this.Loaded += CV_DiscoverFeed_Loaded;
     }
 
+    private void SetSelectedLocation(Location location, string address)
+    {
+        SelectedLocation = new FirebaseLocation(location) { Address = address };
+        if (_cvMiniMap.Content is Map miniMap)
+        {
+            miniMap.Pins.Clear();
+            miniMap.MoveToRegion(new MapSpan(location, 0.01, 0.01));
+            miniMap.Pins.Add(new Pin() { Label = address, Location = location });
+        }
+    }
     private void CV_DiscoverFeed_Loaded(object? sender, EventArgs e)
     {
         
@@ -146,7 +156,7 @@ public partial class CV_DiscoverFeed : ContentView
 
     private void _cvMiniMap_MapClicked(object? sender, EventArgs e)
     {
-        Navigation.PushAsync(new CP_MapLocationSelector(() => ((Map)_cvMiniMap.Content).VisibleRegion, SelectedLocation?.Address?? ""));
+        Navigation.PushAsync(new CP_MapLocationSelector(((Map)_cvMiniMap.Content).VisibleRegion, SelectedLocation?.Address?? "", SetSelectedLocation));
     }
 
     private void CV_DiscoverFeed_FiltersTapped(object? sender, TappedEventArgs e)
