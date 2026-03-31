@@ -9,17 +9,39 @@ namespace eatMeet.Models;
 public static class LocationManager
 {
     public static Location? CurrentLocation { get; private set; }
+    public static string? CurrentAddress { get; private set; }
     public static Geohasher Encoder { get; private set; } = new();
 
     public static async Task<Location?> GetUpdatedLocaionAsync()
     {
         CurrentLocation = await GetLocation();
+        CurrentAddress = CurrentLocation != null ? await GetAddressFromLocation(CurrentLocation) : null;
         return CurrentLocation;
     }
 
     public static async Task UpdateLocationAsync()
     {
         CurrentLocation = await GetLocation();
+        CurrentAddress = CurrentLocation != null ? await GetAddressFromLocation(CurrentLocation) : null;
+    }
+
+    public static async Task<string?> GetAddressFromLocation(Location location)
+    {
+        string? retVal = null;
+        IEnumerable<Placemark> placemarks = await Geocoding.GetPlacemarksAsync(location);
+        Placemark? pm = placemarks.FirstOrDefault();
+        if (pm != null)
+        {
+            retVal = string.Join(", ", new[]
+            {
+                string.Join(" ", new[] { pm.SubThoroughfare, pm.Thoroughfare }.Where(s => !string.IsNullOrWhiteSpace(s))),
+                pm.Locality,
+                pm.AdminArea,
+                pm.CountryName
+            }.Where(s => !string.IsNullOrWhiteSpace(s)));
+        }
+
+        return retVal;
     }
 
     public static async Task<List<Location>> GetLocationsFromAddress(string address)

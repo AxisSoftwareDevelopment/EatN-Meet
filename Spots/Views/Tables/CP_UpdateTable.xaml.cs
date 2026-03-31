@@ -26,17 +26,29 @@ public partial class CP_UpdateTable : ContentPage
 
         InitializeComponent();
 
-        if (LocationManager.CurrentLocation != null)
-        {
-            _cvMiniMap.Pins.Clear();
-            _cvMiniMap.MoveToRegion(new MapSpan(LocationManager.CurrentLocation, 0.01, 0.01));
-            _cvMiniMap.Pins.Add(new Pin() { Label = "", Location = LocationManager.CurrentLocation });
-        }
-
         _FrameTablePicture.HeightRequest = tablePictureDimensions;
         _FrameTablePicture.WidthRequest = tablePictureDimensions;
         _cvMiniMap.HeightRequest = tablePictureDimensions * 0.75;
         _cvMiniMap.MapClicked += _cvMiniMap_MapClicked;
+    }
+
+    protected override async void OnAppearing()
+    {
+        base.OnAppearing();
+
+        Location? location = LocationManager.CurrentLocation;
+        if (location == null)
+            location = await LocationManager.GetUpdatedLocaionAsync();
+
+        if (location != null)
+        {
+            _cvMiniMap.Pins.Clear();
+            _cvMiniMap.MoveToRegion(new MapSpan(location, 0.01, 0.01));
+            _cvMiniMap.Pins.Add(new Pin() { Label = "", Location = location });
+
+            if (string.IsNullOrWhiteSpace(_entryAddress.Text) && LocationManager.CurrentAddress != null)
+                _entryAddress.Text = LocationManager.CurrentAddress;
+        }
     }
 
     private void _cvMiniMap_MapClicked(object? sender, MapClickedEventArgs e)

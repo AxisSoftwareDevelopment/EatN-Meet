@@ -32,11 +32,11 @@ public static class DatabaseManager
     #region Session Management
     public static async Task<Client> LogInUserAsync(string email, string password, FirebaseLocation? lastLocation = null, bool getUser = true)
     {
-        string[] userSignInMethods = await CrossFirebaseAuth.Current.FetchSignInMethodsAsync(email);
-        userSignInMethods ??= [];
+        //string[] userSignInMethods = await CrossFirebaseAuth.Current.FetchSignInMethodsAsync(email);
+        //userSignInMethods ??= [];
         
-        if (userSignInMethods.Length == 0 || !userSignInMethods.Contains("password"))
-            throw new FirebaseAuthException(FIRAuthError.InvalidEmail, "Custom Exception -> There was no 'email and password' login method, or none at all.");
+        //if (userSignInMethods.Length == 0 || !userSignInMethods.Contains("password"))
+        //    throw new FirebaseAuthException(FIRAuthError.InvalidEmail, "Custom Exception -> There was no 'email and password' login method, or none at all.");
 
         IFirebaseUser iFUser = await CrossFirebaseAuth.Current.SignInWithEmailAndPasswordAsync(email, password, false);
 

@@ -19,7 +19,8 @@ namespace eatMeet.FirebaseStorage
 
             IStorageReference storageRef = CrossFirebaseStorage.Current.GetReferenceFromPath(filePath);
 
-            //await storageRef.DeleteAsync();
+            try { await storageRef.DeleteAsync(); } catch (Exception) { /* Ignore if the file does not exist.*/ }
+
             await storageRef.PutBytes(imageFile.Bytes).AwaitAsync();
             return filePath;
         }

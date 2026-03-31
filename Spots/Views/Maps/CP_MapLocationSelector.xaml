@@ -2,6 +2,7 @@
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:maps="clr-namespace:Microsoft.Maui.Controls.Maps;assembly=Microsoft.Maui.Controls.Maps"
+             xmlns:searchBar="clr-namespace:eatMeet.SearchBar"
              x:Class="eatMeet.CP_MapLocationSelector"
              Title="CP_MapLocationSelector">
     
@@ -9,11 +10,45 @@
         <Label Text="{DynamicResource lbl_SelectLocation}" TextColor="{DynamicResource PrimaryAccent}" FontSize="24" FontAttributes="Bold" HorizontalOptions="Start" VerticalOptions="Center"></Label>
     </NavigationPage.TitleView>
 
-    <StackLayout>
-        <maps:Map x:Name="_cvMap" HorizontalOptions="FillAndExpand" VerticalOptions="FillAndExpand" Margin="5,5,5,0"/>
-        <StackLayout Orientation="Horizontal" Margin="25,15">
-            <Label x:Name="_lblAddress" HorizontalOptions="FillAndExpand" HorizontalTextAlignment="Center" TextColor="{DynamicResource Tertiary}"/>
-        </StackLayout>
-    </StackLayout>
+    <Grid>
+        <!-- Map + label fill the entire grid using row definitions -->
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+            <maps:Map x:Name="_cvMap" Grid.Row="0" HorizontalOptions="FillAndExpand" VerticalOptions="FillAndExpand" Margin="5,5,5,0"/>
+            <StackLayout Grid.Row="1" Orientation="Vertical" Margin="15,5">
+                <Label x:Name="_lblSelectedAddress" HorizontalOptions="FillAndExpand" HorizontalTextAlignment="Center" TextColor="{DynamicResource Tertiary}"/>
+                <Button x:Name="_btnSelectLocation" CornerRadius="5" BackgroundColor="{DynamicResource Primary}" TextColor="{DynamicResource PrimaryAccent}" FontSize="Small" Text="Select Location" Margin="5,5,5,0"/>
+            </StackLayout>
+        </Grid>
+
+        <!-- Search controls float over the map (declared later = higher z-order) -->
+        <VerticalStackLayout VerticalOptions="Start">
+            <Border x:Name="_frameSearchBar"  StrokeShape="RoundRectangle 15" BackgroundColor="{DynamicResource Secondary}" Margin="10,10,10,0">
+                <SearchBar x:Name="_entrySearchTerms"/>
+            </Border>
+            <Border x:Name="_frameSearchResults" Margin="20,0,20,10" StrokeShape="RoundRectangle 15" BackgroundColor="{DynamicResource Secondary}" IsVisible="False">
+                <StackLayout Orientation="Vertical" Margin="15">
+                    <ActivityIndicator 
+                        x:Name="_actLoadingIndicator"
+                        IsRunning="{Binding LoadingResults, Mode=OneWay}"
+                        IsVisible="{Binding LoadingResults, Mode=OneWay}"
+                        VerticalOptions="Center"
+                        HorizontalOptions="Center"
+                        Color="{DynamicResource Tertiary}"/>
+                    <!-- Search Results -->
+                    <CollectionView x:Name="_colSearchBarCollectionView" HorizontalOptions="FillAndExpand" ItemsSource="{Binding ItemSource}" SelectionMode="Single">
+                        <CollectionView.ItemTemplate>
+                            <DataTemplate>
+                                <searchBar:CV_SearchBarDataTemplate/>
+                            </DataTemplate>
+                        </CollectionView.ItemTemplate>
+                    </CollectionView>
+                </StackLayout>
+            </Border>
+        </VerticalStackLayout>
+    </Grid>
 
 </ContentPage>

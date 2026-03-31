@@ -65,17 +65,17 @@ public partial class CV_DiscoverFeed : ContentView
             miniMap.IsZoomEnabled = false;
             miniMap.IsScrollEnabled = false;
 
-            if (LocationManager.CurrentLocation != null)
+            Location? location = LocationManager.CurrentLocation ?? await LocationManager.GetUpdatedLocaionAsync();
+
+            if (location != null)
             {
-                CurrentLocation = SelectedLocation = new FirebaseLocation(LocationManager.CurrentLocation);
+                string address = LocationManager.CurrentAddress ?? await LocationManager.GetAddressFromLocation(location) ?? "";
+                CurrentLocation = SelectedLocation = new FirebaseLocation(location) { Address = address };
                 miniMap.Pins.Clear();
-                miniMap.MoveToRegion(new MapSpan(LocationManager.CurrentLocation, 0.01, 0.01));
-                miniMap.Pins.Add(new Pin() { Label = "", Location = LocationManager.CurrentLocation });
+                miniMap.MoveToRegion(new MapSpan(location, 0.01, 0.01));
+                miniMap.Pins.Add(new Pin() { Label = address, Location = location });
             }
-            else
-            {
-                await LocationManager.UpdateLocationAsync();
-            }
+
             miniMap.HeightRequest = displayInfo.Height * 0.025;
             miniMap.WidthRequest = displayInfo.Height * 0.045;
 
@@ -146,7 +146,7 @@ public partial class CV_DiscoverFeed : ContentView
 
     private void _cvMiniMap_MapClicked(object? sender, EventArgs e)
     {
-        Navigation.PushAsync(new CP_MapLocationSelector(() => ((Map)_cvMiniMap.Content).VisibleRegion, "Selected Area"));
+        Navigation.PushAsync(new CP_MapLocationSelector(() => ((Map)_cvMiniMap.Content).VisibleRegion, SelectedLocation?.Address?? ""));
     }
 
     private void CV_DiscoverFeed_FiltersTapped(object? sender, TappedEventArgs e)

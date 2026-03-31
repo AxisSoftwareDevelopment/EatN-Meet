@@ -66,7 +66,7 @@ public partial class CP_UpdateUserInformation : ContentPage
                 Description = _editorDescription.Text.Trim(),
                 PhoneNumber = _entryPhoneNumber.Text,
                 PhoneCountryCode = _entryPhoneCountryCode.Text,
-                BirthDate = _dateBirthdate.Date
+                BirthDate = _dateBirthdate.Date.GetValueOrDefault(),
             };
             
             if (ValidateFields(newData))
@@ -178,7 +178,7 @@ public partial class CP_UpdateUserInformation : ContentPage
                             (!_birhtdateSelected && _userIsEmpty);
         bool descriptionUnder150Chars = newData.Description.Length <= 150;
         bool validPhoneNumber = (newData.PhoneNumber.Length == 10 && newData.PhoneCountryCode.Length == 2) || (newData.PhoneNumber.Length == 0 && newData.PhoneCountryCode.Length == 0);
-        bool birthdateIsValid = (DateTime.Today.Year - _dateBirthdate.Date.Year) > 12;
+        bool birthdateIsValid = (DateTime.Today.Year - _dateBirthdate.Date.GetValueOrDefault().Year) > 12;
 
         if (thereAreEmptyFields && !birthdateIsValid && !descriptionUnder150Chars && !validPhoneNumber)
         {

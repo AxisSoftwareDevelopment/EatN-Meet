@@ -17,8 +17,8 @@
                             <Border Margin="5, 0, 5, 5" StrokeShape="RoundRectangle 5,5,5,5" HorizontalOptions="FillAndExpand" VerticalOptions="FillAndExpand" BackgroundColor="{DynamicResource Secondary}">
                                 <StackLayout Orientation="Horizontal" BackgroundColor="{DynamicResource Secondary}" HorizontalOptions="FillAndExpand" Margin="5,5">
                                     <Grid>
-                                        <Border StrokeThickness="0" StrokeShape="RoundRectangle 5">
-                                            <Image Source="{Binding SpotProfilePicture}" HeightRequest="125" WidthRequest="125" BackgroundColor="{DynamicResource Primary}"/>
+                                        <Border StrokeThickness="0" StrokeShape="RoundRectangle 5" MinimumHeightRequest="125" MinimumWidthRequest="125" VerticalOptions="Start">
+                                            <Image Source="{Binding SpotProfilePicture}"/>
                                         </Border>
                                         <ImageButton Grid.Row="5" Grid.Column="0" Source="{Binding LikeSource}" HeightRequest="35" WidthRequest="35" Margin="5,0,5,5" HorizontalOptions="Start" VerticalOptions="End" Clicked="LikeButtonClicked"/>
                                     </Grid>
@@ -31,7 +31,9 @@
                                             </Border>
                                         </StackLayout>
                                         <Label Text="{Binding Comment}" FontSize="Body" LineBreakMode="WordWrap" TextColor="{DynamicResource SecondaryAccent}" MaxLines="2" Margin="10,0,10,0"/>
-                                        <Image Source="{Binding AttachedPicture}"/>
+                                        <Border StrokeThickness="0" StrokeShape="RoundRectangle 5">
+                                            <Image Source="{Binding AttachedPicture}"/>
+                                        </Border>
                                     </StackLayout>
                                 </StackLayout>
                             </Border>

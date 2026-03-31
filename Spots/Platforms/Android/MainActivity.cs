@@ -2,7 +2,6 @@
 using Android.Content.PM;
 using Android.Content;
 using Plugin.Firebase.CloudMessaging;
-using Plugin.Firebase.DynamicLinks;
 using Android.OS;
 using Android;
 
