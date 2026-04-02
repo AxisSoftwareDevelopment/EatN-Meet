@@ -40,7 +40,7 @@
                             <Label Text=" *" VerticalOptions="Center" FontAttributes="Bold" TextColor="{DynamicResource ErrorAccent}"/>
                         </StackLayout>
                         <maps:Map x:Name="_cvMiniMap" HorizontalOptions="FillAndExpand" VerticalOptions="FillAndExpand" Margin="15,5,15,5" IsZoomEnabled="False" IsScrollEnabled ="False"/>
-                        <Entry x:Name="_entryAddress" Placeholder="{DynamicResource lbl_AddressPlaceholder}" TextColor="{DynamicResource SecondaryAccent}"/>
+                        <Label x:Name="_labelAddress" HorizontalTextAlignment="Center" TextColor="{DynamicResource Tertiary}"/>
                         <!-- Description -->
                         <Label Text="{DynamicResource lbl_DescriptionField}" TextColor="{DynamicResource SecondaryAccent}" HorizontalOptions="FillAndExpand" HorizontalTextAlignment="Start"/>
                         <Editor x:Name="_editorDescription" Placeholder="{DynamicResource lbl_Description}" HorizontalOptions="FillAndExpand" AutoSize="TextChanges"/>

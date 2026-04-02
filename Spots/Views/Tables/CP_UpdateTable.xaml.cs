@@ -49,8 +49,8 @@ public partial class CP_UpdateTable : ContentPage
             _cvMiniMap.MoveToRegion(new MapSpan(location, 0.01, 0.01));
             _cvMiniMap.Pins.Add(new Pin() { Label = "", Location = location });
 
-            if (string.IsNullOrWhiteSpace(_entryAddress.Text) && LocationManager.CurrentAddress != null)
-                _entryAddress.Text = LocationManager.CurrentAddress;
+            if (string.IsNullOrWhiteSpace(_labelAddress.Text) && LocationManager.CurrentAddress != null)
+                _labelAddress.Text = LocationManager.CurrentAddress;
         }
     }
 
@@ -58,7 +58,7 @@ public partial class CP_UpdateTable : ContentPage
     {
         if (!_inputsAreLocked)
         {
-            Navigation.PushAsync(new CP_MapLocationSelector(_cvMiniMap.VisibleRegion, _entryAddress.Text ?? "", SetSelectedLocation));
+            Navigation.PushAsync(new CP_MapLocationSelector(_cvMiniMap.VisibleRegion, _labelAddress.Text ?? "", SetSelectedLocation));
         }
     }
 
@@ -72,9 +72,9 @@ public partial class CP_UpdateTable : ContentPage
 
         Table newData = new Table()
         {
-            TableName = ToTitleCase(_entryTableName.Text.Trim()),
-            Location = new FirebaseLocation(_entryAddress.Text.Trim(), _location?.Latitude ?? _Table.Location.Latitude, _location?.Longitude ?? _Table.Location.Longitude),
-            Description = _editorDescription.Text.Trim(),
+            TableName = ToTitleCase(_entryTableName.Text?.Trim() ?? ""),
+            Location = new FirebaseLocation(_labelAddress.Text.Trim(), _location?.Latitude ?? _Table.Location.Latitude, _location?.Longitude ?? _Table.Location.Longitude),
+            Description = _editorDescription.Text?.Trim() ?? "",
         };
 
         if (ValidateFields(newData))
@@ -131,7 +131,7 @@ public partial class CP_UpdateTable : ContentPage
             Location = location
         });
         _cvMiniMap.MoveToRegion(new MapSpan(location, 0.01, 0.01));
-        _entryAddress.Text = address;
+        _labelAddress.Text = address;
         _location = location;
     }
     private void LockInputs()
@@ -139,7 +139,7 @@ public partial class CP_UpdateTable : ContentPage
         _btnLoadImage.IsEnabled = false;
         _btnSave.IsEnabled = false;
         _editorDescription.IsEnabled = false;
-        _entryAddress.IsEnabled = false;
+        _labelAddress.IsEnabled = false;
         _entryTableName.IsEnabled = false;
         _inputsAreLocked = true;
     }
@@ -149,7 +149,7 @@ public partial class CP_UpdateTable : ContentPage
         _btnLoadImage.IsEnabled = true;
         _btnSave.IsEnabled = true;
         _editorDescription.IsEnabled = true;
-        _entryAddress.IsEnabled = true;
+        _labelAddress.IsEnabled = true;
         _entryTableName.IsEnabled = true;
         _inputsAreLocked = false;
     }
