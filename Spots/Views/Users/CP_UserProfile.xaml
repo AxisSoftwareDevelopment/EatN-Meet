@@ -54,10 +54,10 @@
                                     <StackLayout Orientation="Vertical">
                                         <StackLayout Orientation="Horizontal" BackgroundColor="{DynamicResource Secondary}" HorizontalOptions="FillAndExpand" Margin="5,5">
                                             <Grid>
-                                                <Border StrokeShape="RoundRectangle 5" StrokeThickness="0" MinimumHeightRequest="125" VerticalOptions="Start">
-                                                    <Image Grid.Column="0" Grid.Row="0" Source="{Binding SpotProfilePicture}" BackgroundColor="{DynamicResource Secondary}" VerticalOptions="Start"/>
+                                                <Border StrokeShape="RoundRectangle 5" StrokeThickness="0" MinimumHeightRequest="125" MinimumWidthRequest="125" VerticalOptions="Start">
+                                                    <Image Source="{Binding SpotProfilePicture}"/>
                                                 </Border>
-                                                <Button Grid.Row="5" Grid.Column="0" Text="{Binding LikesCount}" Margin="5,0,5,5" HorizontalOptions="Start" VerticalOptions="End" BackgroundColor="{Binding LikeColor}" Clicked="LikeButtonClicked"/>
+                                                <ImageButton Grid.Row="5" Grid.Column="0" Source="{Binding LikeSource}" HeightRequest="35" WidthRequest="35" Margin="5,0,5,5" HorizontalOptions="Start" VerticalOptions="End" Clicked="LikeButtonClicked"/>
                                             </Grid>
                                             <StackLayout Orientation="Vertical" HorizontalOptions="FillAndExpand" Margin="5,5">
                                                 <Label Text="{Binding SpotFullName}" FontSize="Title" FontAttributes="Bold" TextColor="{DynamicResource SecondaryAccent}" MaxLines="2"/>
