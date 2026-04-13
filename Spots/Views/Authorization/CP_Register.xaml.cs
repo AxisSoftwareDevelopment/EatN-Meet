@@ -109,10 +109,12 @@ public partial class CP_Register : ContentPage
         _entryConfirmEmail.IsEnabled = false;
         _entryPassword.IsEnabled = false;
         _entryConfirmPassword.IsEnabled = false;
+        _loadingOverlay.Show();
     }
 
     private void UnlockInputs()
     {
+        _loadingOverlay.Hide();
         _btnRegister.IsEnabled = true;
         _entryEmail.IsEnabled = true;
         _entryConfirmEmail.IsEnabled = true;

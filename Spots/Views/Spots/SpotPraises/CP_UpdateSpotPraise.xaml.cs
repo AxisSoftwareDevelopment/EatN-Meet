@@ -161,10 +161,12 @@ public partial class CP_UpdateSpotPraise : ContentPage
         _btnSave.IsEnabled = false;
         _editorDescription.IsEnabled = false;
         _entrySpotSearchBar.IsEnabled = false;
+        _loadingOverlay.Show();
     }
 
     private void UnlockInputs()
     {
+        _loadingOverlay.Hide();
         _btnLoadImage.IsEnabled = true;
         _btnSave.IsEnabled = true;
         _editorDescription.IsEnabled = true;

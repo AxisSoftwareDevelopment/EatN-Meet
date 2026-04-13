@@ -2,6 +2,7 @@
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:maps="clr-namespace:Microsoft.Maui.Controls.Maps;assembly=Microsoft.Maui.Controls.Maps"
+             xmlns:ui="clr-namespace:eatMeet.Views.UserInterface"
              x:Class="eatMeet.CP_UpdateTable"
              Title="CP_UpdateTable"
              BackgroundColor="{DynamicResource Primary}">
@@ -11,6 +12,7 @@
     </NavigationPage.TitleView>
 
     <ContentPage.Content>
+        <Grid>
         <Border Margin="20, 0, 20, 20" StrokeShape="RoundRectangle 50,50,50,50" HorizontalOptions="FillAndExpand" BackgroundColor="{DynamicResource Secondary}">
             <StackLayout Margin="10, 10, 10, 0" VerticalOptions="FillAndExpand">
                 <ScrollView x:Name="_scrollviewMain" VerticalOptions="FillAndExpand" HorizontalOptions="FillAndExpand" HorizontalScrollBarVisibility="Never" VerticalScrollBarVisibility="Never">
@@ -53,5 +55,7 @@
                 </ScrollView>
             </StackLayout>
         </Border>
+        <ui:CV_ActivityIndicator x:Name="_loadingOverlay" />
+        </Grid>
     </ContentPage.Content>
 </ContentPage>

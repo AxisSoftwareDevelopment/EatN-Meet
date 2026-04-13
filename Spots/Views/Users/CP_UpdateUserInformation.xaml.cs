@@ -255,10 +255,12 @@ public partial class CP_UpdateUserInformation : ContentPage
         _entryLastName.IsEnabled = false;
         _entryPhoneCountryCode.IsEnabled = false;
         _entryPhoneNumber.IsEnabled = false;
+        _loadingOverlay.Show();
     }
 
     private void UnlockInputs()
     {
+        _loadingOverlay.Hide();
         _btnLoadImage.IsEnabled = true;
         _btnSave.IsEnabled = true;
         _editorDescription.IsEnabled = true;

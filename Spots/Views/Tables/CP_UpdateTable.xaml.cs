@@ -142,10 +142,12 @@ public partial class CP_UpdateTable : ContentPage
         _labelAddress.IsEnabled = false;
         _entryTableName.IsEnabled = false;
         _inputsAreLocked = true;
+        _loadingOverlay.Show();
     }
 
     private void UnlockInputs()
     {
+        _loadingOverlay.Hide();
         _btnLoadImage.IsEnabled = true;
         _btnSave.IsEnabled = true;
         _editorDescription.IsEnabled = true;

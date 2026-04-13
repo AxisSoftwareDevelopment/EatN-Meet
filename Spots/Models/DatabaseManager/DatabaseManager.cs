@@ -7,6 +7,7 @@ using Plugin.Firebase.Auth;
 using Plugin.Firebase.Core.Exceptions;
 using Plugin.Firebase.Firestore;
 using System.Reflection.Metadata;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace eatMeet.Database;
 public static class DatabaseManager
@@ -170,8 +171,8 @@ public static class DatabaseManager
             spot.SpotID = await FirestoreManager.SetDocumentData(COLLECTION_SPOTS, new Spot_Firebase(spot, ""));
             if (imageFile != null)
             {
-                string tablePictureAddress = await FirebaseStorageManager.SaveFile($"{COLLECTION_SPOTS}/{spot.SpotID}", "SpotsPicture", imageFile);
-                await FirestoreManager.UpdateSpecificData(COLLECTION_SPOTS, spot.SpotID, nameof(Spot_Firebase.ProfilePictureAddress), tablePictureAddress);
+                string spotPictureAddress = await FirebaseStorageManager.SaveFile($"{COLLECTION_SPOTS}/{spot.SpotID}", "SpotsPicture", imageFile);
+                await FirestoreManager.UpdateSpecificData(COLLECTION_SPOTS, spot.SpotID, nameof(Spot_Firebase.ProfilePictureAddress), spotPictureAddress);
             }
         }
 
@@ -183,7 +184,7 @@ public static class DatabaseManager
         if (table.TableID.Length > 0)
         {
             string profilePictureAddress = "";
-            if (imageFile != null)
+            if (imageFile != null && table.TableID.Length > 0)
             {
                 profilePictureAddress = await FirebaseStorageManager.SaveFile($"{COLLECTION_TABLES}/{table.TableID}", "TablePicture", imageFile);
             }
@@ -191,11 +192,11 @@ public static class DatabaseManager
         }
         else
         {
-            string tableID = await FirestoreManager.SetDocumentData(COLLECTION_TABLES, new Table_Firebase(table, ""));
+            table.TableID = await FirestoreManager.SetDocumentData(COLLECTION_TABLES, new Table_Firebase(table, ""));
             if (imageFile != null)
             {
                 string tablePictureAddress = await FirebaseStorageManager.SaveFile($"{COLLECTION_TABLES}/{table.TableID}", "TablePicture", imageFile);
-                await FirestoreManager.UpdateSpecificData(COLLECTION_TABLES, tableID, nameof(Table_Firebase.TablePictureAddress), tablePictureAddress);
+                await FirestoreManager.UpdateSpecificData(COLLECTION_TABLES, table.TableID, nameof(Table_Firebase.TablePictureAddress), tablePictureAddress);
             }
         }
 

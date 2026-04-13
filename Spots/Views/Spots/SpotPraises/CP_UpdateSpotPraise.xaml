@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:ui="clr-namespace:eatMeet.Views.UserInterface"
              x:Class="eatMeet.CP_UpdateSpotPraise"
              Title="CP_UpdateSpotPraise"
              BackgroundColor="{DynamicResource Primary}">
@@ -9,6 +10,7 @@
         <Label Text="{DynamicResource lbl_WriteSpotReview}" TextColor="{DynamicResource PrimaryAccent}" FontSize="24" FontAttributes="Bold" HorizontalOptions="Start" VerticalOptions="Center"></Label>
     </NavigationPage.TitleView>
 
+    <Grid>
     <Border Margin="20, 0, 20, 20" StrokeShape="RoundRectangle 25,25,25,25" HorizontalOptions="FillAndExpand" VerticalOptions="FillAndExpand" BackgroundColor="{DynamicResource Secondary}">
         <StackLayout Margin="10, 10" VerticalOptions="FillAndExpand">
             <ScrollView x:Name="_scrollviewMain" VerticalOptions="FillAndExpand" HorizontalOptions="FillAndExpand" HorizontalScrollBarVisibility="Never" VerticalScrollBarVisibility="Never">
@@ -76,5 +78,7 @@
             </StackLayout>
         </StackLayout>
     </Border>
+    <ui:CV_ActivityIndicator x:Name="_loadingOverlay" />
+    </Grid>
 
 </ContentPage>

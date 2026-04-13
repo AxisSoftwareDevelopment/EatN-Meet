@@ -147,6 +147,9 @@
 	  <MauiXaml Update="Views\Tables\CP_UpdateTable.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
+	  <MauiXaml Update="Views\UserInterface\CV_ActivityIndicator.xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </MauiXaml>
 	  <MauiXaml Update="Views\Users\FollowedClients\CP_FollowedClientsView.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
