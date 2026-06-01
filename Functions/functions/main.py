@@ -3,26 +3,93 @@
 # Deploy with `firebase deploy`
 
 import json
+import time
 from firebase_functions import https_fn
+from firebase_functions import params
 from firebase_admin import initialize_app, messaging
 import requests
 
-API_KEY = "<API_KEY>"  # Replace with your actual API key
+GOOGLE_PLACES_API_KEY = params.SecretParam("GOOGLE_PLACES_API_KEY")
 GOOGLE_PLACES_URL = f"https://places.googleapis.com/v1/"
+HTTP_TIMEOUT_SECONDS = (3.05, 10)
+HTTP_RETRY_COUNT = 2
+RETRY_STATUS_CODES = {429, 500, 502, 503, 504}
+MAX_PAGE_SIZE = 20
+MAX_SEARCH_RADIUS_METERS = 50000
+MIN_IMAGE_DIMENSION = 1
+MAX_IMAGE_DIMENSION = 1600
+
+HTTP_SESSION = requests.Session()
 
 app = initialize_app()
+
+
+def _get_google_places_api_key() -> str:
+    api_key = GOOGLE_PLACES_API_KEY.value.strip()
+    if not api_key:
+        raise ValueError("GOOGLE_PLACES_API_KEY is not configured.")
+    if not api_key.startswith("AIza"):
+        raise ValueError("GOOGLE_PLACES_API_KEY appears invalid (unexpected format).")
+    return api_key
+
+
+def _require_authenticated_user(request: https_fn.CallableRequest) -> str:
+    auth = getattr(request, "auth", None)
+    uid = getattr(auth, "uid", None) if auth else None
+    if not uid:
+        raise https_fn.HttpsError(
+            code=https_fn.FunctionsErrorCode.UNAUTHENTICATED,
+            message="Authentication required.",
+        )
+    return uid
+
+
+def _build_response(output: object, error: str = "", next_page_token: str | None = None) -> str:
+    payload: dict[str, object] = {
+        "output": output,
+        "errors": error,
+    }
+    if next_page_token is not None:
+        payload["nextPageToken"] = next_page_token
+    return json.dumps(payload)
+
+
+def _clamp(value: int, minimum: int, maximum: int) -> int:
+    return max(minimum, min(value, maximum))
+
+
+def _http_request(method: str, url: str, **kwargs):
+    last_error: Exception | None = None
+    for attempt in range(HTTP_RETRY_COUNT + 1):
+        try:
+            response = HTTP_SESSION.request(method, url, timeout=HTTP_TIMEOUT_SECONDS, **kwargs)
+            if response.status_code in RETRY_STATUS_CODES and attempt < HTTP_RETRY_COUNT:
+                time.sleep(0.4 * (2 ** attempt))
+                continue
+            return response
+        except requests.RequestException as ex:
+            last_error = ex
+            if attempt < HTTP_RETRY_COUNT:
+                time.sleep(0.4 * (2 ** attempt))
+                continue
+            raise
+
+    if last_error is not None:
+        raise last_error
+    raise RuntimeError("Unexpected HTTP request failure")
 
 @https_fn.on_call()
 def TRIGGER_NOTIFICATION(request: https_fn.CallableRequest):
     METHOD_NAME = "TRIGGER_NOTIFICATION"
     print(f"\n\t<----- Starting Cloud Function - {METHOD_NAME} ----->")
     try:
+        _require_authenticated_user(request)
         param_Type = request.data["type"]
         param_Topic = request.data["topic"]
         param_FCMTokens = request.data["fcm_tokens"]
         param_Title = request.data["title"]
         param_Body = request.data["body"]
-        print(f"{METHOD_NAME} - Type: [{param_Type}]\n-> Topic: {param_Topic}\n-> Tokens: {str(param_FCMTokens)}\n-> Title: {param_Title}\n-> Body: {param_Body}")
+        print(f"{METHOD_NAME} - Type: [{param_Type}] -> Topic: {param_Topic} -> TokenCount: {len(param_FCMTokens)}")
 
         notification = messaging.Notification (
             title=param_Title,
@@ -44,17 +111,27 @@ def TRIGGER_NOTIFICATION(request: https_fn.CallableRequest):
 
         if batch_response.failure_count < 1:
             print(f"{METHOD_NAME} - Messages sent successfully")
+            return {"success": True, "failureCount": 0}
         else:
             print(f"{METHOD_NAME} - [{str(batch_response.failure_count)}] messages failed.")
+            return {"success": False, "failureCount": batch_response.failure_count}
+    except https_fn.HttpsError:
+        raise
     except Exception as ex:
         print(f"FB Function Failed - {METHOD_NAME} ->" + str(ex))
+        raise https_fn.HttpsError(
+            code=https_fn.FunctionsErrorCode.INTERNAL,
+            message="Failed to trigger notifications.",
+            details=str(ex),
+        )
     print(f"\n\t<----- Finished Cloud Function - {METHOD_NAME} ----->")
 
-@https_fn.on_call()
+@https_fn.on_call(secrets=[GOOGLE_PLACES_API_KEY])
 def MAPS_GET_ALL_RESTAURANTS(request: https_fn.CallableRequest):
     METHOD_NAME = "MAPS_GET_ALL_RESTAURANTS"
     print(f"\n\t<----- Started Cloud Function - {METHOD_NAME} ----->")
     try:
+        _require_authenticated_user(request)
         param_TextQuery = request.data.get("textQuery", "") # Get the text query from the request data
         param_Location_Latitude = request.data.get("locationLatitude", 0.0) # Get the latitude from the request data, default to 0.0
         param_Location_Longitude = request.data.get("locationLongitude", 0.0) # Get the longitude from the request data, default to 0.0
@@ -65,10 +142,14 @@ def MAPS_GET_ALL_RESTAURANTS(request: https_fn.CallableRequest):
 
         if param_SearchRadius < 250:
             param_SearchRadius = 250 # Ensure the search radius is at least 250 meters
+        param_SearchRadius = _clamp(int(param_SearchRadius), 250, MAX_SEARCH_RADIUS_METERS)
+        param_PageSize = _clamp(int(param_PageSize), 1, MAX_PAGE_SIZE)
+
+        api_key = _get_google_places_api_key()
 
         # Set the headers for the request, including the API key and content type
         headers={
-            "X-Goog-Api-Key": API_KEY,
+            "X-Goog-Api-Key": api_key,
             "Content-Type": "application/json",
             "X-Goog-FieldMask": "places.id,places.displayName,places.formattedAddress,places.location,places.photos,nextPageToken"
         }
@@ -88,7 +169,7 @@ def MAPS_GET_ALL_RESTAURANTS(request: https_fn.CallableRequest):
             data["pageToken"] = param_PageToken
 
         # Make the GET request to the Places API
-        response = requests.post(url, headers=headers, json=data)
+        response = _http_request("POST", url, headers=headers, json=data)
         if response.status_code == 200:
             print(f"{METHOD_NAME} - Request successful.")
             output = FormatJSONResponse_TextSearch(response.text.strip(), "")
@@ -97,32 +178,38 @@ def MAPS_GET_ALL_RESTAURANTS(request: https_fn.CallableRequest):
             output = FormatJSONResponse_TextSearch("", response.text.strip())
         print(f"{METHOD_NAME} - Output: [{output}]")
         print(f"{METHOD_NAME} - At URL: [{url}]")
-        print(f"{METHOD_NAME} - With headers: [{headers}]")
+        print(f"{METHOD_NAME} - With headers: [{{'X-Goog-Api-Key': '<redacted>', 'Content-Type': 'application/json', 'X-Goog-FieldMask': 'places.id,places.displayName,places.formattedAddress,places.location,places.photos,nextPageToken'}}]")
         print(f"{METHOD_NAME} - With data: [{data}]")
-        print(f"{METHOD_NAME} - Response: [{response.text.strip()}]")
+        print(f"{METHOD_NAME} - Upstream response status: [{response.status_code}]")
         print(f"\n\t<----- Finished Cloud Function - {METHOD_NAME} ----->")
         return output
+    except https_fn.HttpsError:
+        raise
     except Exception as ex:
         print(f"FB Function Failed - {METHOD_NAME} ->" + str(ex))
+        return _build_response([], str(ex), "")
     print(f"\n\t<----- Finished Cloud Function - {METHOD_NAME} ----->")
 
-@https_fn.on_call()
+@https_fn.on_call(secrets=[GOOGLE_PLACES_API_KEY])
 def MAPS_GET_PLACE_DETAILS(request: https_fn.CallableRequest):
     METHOD_NAME = "MAPS_GET_PLACE_DETAILS"
     print(f"\n\t<----- Started Cloud Function - {METHOD_NAME} ----->")
     try:
+        _require_authenticated_user(request)
         param_PlaceId = request.data.get("placeID", "") # Get the place ID from the request data
         url = GOOGLE_PLACES_URL + "places/" + param_PlaceId # Construct the URL for the Places API search endpoint
 
+        api_key = _get_google_places_api_key()
+
         # Set the headers for the request, including the API key and content type
         headers={
-            "X-Goog-Api-Key": API_KEY,
+            "X-Goog-Api-Key": api_key,
             "Content-Type": "application/json",
             "X-Goog-FieldMask": "id,displayName,formattedAddress,location,photos"
         }
 
         # Make the GET request to the Places API
-        response = requests.get(url, headers=headers)
+        response = _http_request("GET", url, headers=headers)
         if response.status_code == 200:
             print(f"{METHOD_NAME} - Request successful.")
             output = FormatJSONResponse_PlaceDetails(response.text.strip(), "")
@@ -131,28 +218,35 @@ def MAPS_GET_PLACE_DETAILS(request: https_fn.CallableRequest):
             output = FormatJSONResponse_PlaceDetails("", response.text.strip())
         print(f"{METHOD_NAME} - Output: [{output}]")
         print(f"{METHOD_NAME} - At URL: [{url}]")
-        print(f"{METHOD_NAME} - With headers: [{headers}]")
-        print(f"{METHOD_NAME} - Response: [{response.text.strip()}]")
+        print(f"{METHOD_NAME} - With headers: [{{'X-Goog-Api-Key': '<redacted>', 'Content-Type': 'application/json', 'X-Goog-FieldMask': 'id,displayName,formattedAddress,location,photos'}}]")
+        print(f"{METHOD_NAME} - Upstream response status: [{response.status_code}]")
         print(f"\n\t<----- Finished Cloud Function - {METHOD_NAME} ----->")
         return output
+    except https_fn.HttpsError:
+        raise
     except Exception as ex:
         print(f"FB Function Failed - {METHOD_NAME} ->" + str(ex))
+        return _build_response({}, str(ex), None)
     print(f"\n\t<----- Finished Cloud Function - {METHOD_NAME} ----->")
 
-@https_fn.on_call()
+@https_fn.on_call(secrets=[GOOGLE_PLACES_API_KEY])
 def MAPS_GET_PLACE_PICTURES(request: https_fn.CallableRequest):
     METHOD_NAME = "MAPS_GET_PLACE_PICTURES"
     print(f"\n\t<----- Started Cloud Function - {METHOD_NAME} ----->")
     try:
+        _require_authenticated_user(request)
         param_PhotoNames = request.data.get("photoNames", "") # Get the photo names from the request data
-        param_MaxHeightPx = request.data.get("maxHeightPx", 0) # Get the max height from the request data, default to 0
-        param_MaxWidthPx = request.data.get("maxWidthPx", 0) # Get the max width from the request data, default to 0
+        param_MaxHeightPx = _clamp(int(request.data.get("maxHeightPx", 400)), MIN_IMAGE_DIMENSION, MAX_IMAGE_DIMENSION)
+        param_MaxWidthPx = _clamp(int(request.data.get("maxWidthPx", 400)), MIN_IMAGE_DIMENSION, MAX_IMAGE_DIMENSION)
         photos = GetPlacePictures(METHOD_NAME, param_PhotoNames, param_MaxWidthPx, param_MaxHeightPx) # Call the function to get the place pictures
         print(f"{METHOD_NAME} - Output: [{photos}]")
         print(f"\n\t<----- Finished Cloud Function - {METHOD_NAME} ----->")
         return photos
+    except https_fn.HttpsError:
+        raise
     except Exception as ex:
         print(f"FB Function Failed - {METHOD_NAME} ->" + str(ex))
+        return ""
     print(f"\n\t<----- Finished Cloud Function - {METHOD_NAME} ----->")
 
 def FormatJSONResponse_TextSearch(response: str, error: str) -> str:
@@ -169,14 +263,13 @@ def FormatJSONResponse_TextSearch(response: str, error: str) -> str:
                 place["profilePicture"] = ""
 
         # Convert the modified response back to a JSON string
-        output_value = json.dumps(response_json["places"])
+        output_value = response_json.get("places", [])
         nextPageToken = response_json.get("nextPageToken", "")
     except Exception:
-        output_value = "[]"
+        output_value = []
         nextPageToken = ""
 
-    
-    return "{ \"output\": " + output_value + ", \"errors\": \"" + error + "\", \"nextPageToken\": \"" + nextPageToken + "\" }"
+    return _build_response(output_value, error, nextPageToken)
 
 def FormatJSONResponse_PlaceDetails(response: str, error: str) -> str:
     try:
@@ -191,22 +284,22 @@ def FormatJSONResponse_PlaceDetails(response: str, error: str) -> str:
             response_json["profilePicture"] = ""
 
         # Convert the modified response back to a JSON string
-        output_value = json.dumps(response_json)
+        output_value = response_json
     except Exception:
-        output_value = "[]"
+        output_value = {}
 
-    
-    return "{ \"output\": " + output_value + ", \"errors\": \"" + error + "\" }"
+    return _build_response(output_value, error, None)
 
 def GetPlacePictures(methodName: str, photo_names: str, max_width: int = 400, max_height: int = 400) -> str:
+    api_key = _get_google_places_api_key()
     photos = ""
     for photo_name in photo_names.split(","):
         # Construct the URL for the Places API Place Photos endpoint
-        url = GOOGLE_PLACES_URL + f"{photo_name}/media?key={API_KEY}&maxHeightPx={max_height}&maxWidthPx={max_width}&skipHttpRedirect=true"
-        print(f"{methodName} - Requesting photo URL: [{url}]")
+        url = GOOGLE_PLACES_URL + f"{photo_name}/media?key={api_key}&maxHeightPx={max_height}&maxWidthPx={max_width}&skipHttpRedirect=true"
+        print(f"{methodName} - Requesting photo for: [{photo_name}]")
 
         # Make the GET request to the Places API
-        response = requests.get(url)
+        response = _http_request("GET", url)
 
         if response.status_code == 200:
             print(f"{methodName} - Photo request successful.")

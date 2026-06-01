@@ -1,5 +1,17 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
+	<!-- ⚠️⚠️⚠️ BEFORE RELEASING TO PRODUCTION ⚠️⚠️⚠️
+
+		 1. ✅ CREATE & CONFIGURE RELEASE KEYSTORE (see RELEASE_CHECKLIST.md)
+		 2. ✅ RUN: .\pre-release-check.ps1 
+		 3. ✅ UPDATE version numbers below (ApplicationVersion & ApplicationDisplayVersion)
+		 4. ✅ ADD release SHA-1 to Firebase & Google Maps API
+		 5. ✅ BACKUP release keystore to 3 secure locations
+
+		 DO NOT SKIP THESE STEPS! 
+		 See RELEASE_CHECKLIST.md for complete instructions.
+	-->
+
 	<PropertyGroup>
 		<TargetFrameworks>net10.0-android</TargetFrameworks>
 		<!-- Uncomment to also build the tizen app. You will need to install tizen by following this: https://github.com/Samsung/Tizen.NET -->
@@ -23,7 +35,7 @@
 		<ApplicationTitle>eatMeet</ApplicationTitle>
 
 		<!-- App Identifier -->
-		<ApplicationId>com.axissoftwaredevelopment.eatMeet</ApplicationId>
+		<ApplicationId>com.axissoftwaredevelopment.eatNmeet</ApplicationId>
 
 		<!-- Versions -->
 		<ApplicationDisplayVersion>1.0.4</ApplicationDisplayVersion>
@@ -38,12 +50,12 @@
         <CodesignEntitlements>Platforms\iOS\Entitlements.plist</CodesignEntitlements>
 	</PropertyGroup>
 	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net9.0-android|AnyCPU'">
-	  <ApplicationId>com.axissoftwaredevelopment.eatMeet</ApplicationId>
+	  <ApplicationId>com.axissoftwaredevelopment.eatNmeet</ApplicationId>
 	  <DebugType>portable</DebugType>
 	  <ApplicationDisplayVersion>1.0.11</ApplicationDisplayVersion>
 	</PropertyGroup>
 	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net9.0-android|AnyCPU'">
-	  <ApplicationId>com.axissoftwaredevelopment.eatMeet</ApplicationId>
+	  <ApplicationId>com.axissoftwaredevelopment.eatNmeet</ApplicationId>
 	  <DebugType>portable</DebugType>
 	  <ApplicationDisplayVersion>1.0.11</ApplicationDisplayVersion>
 	</PropertyGroup>
@@ -79,12 +91,13 @@
 	</ItemGroup>
 
 	<!-- Google Services -->
-	<ItemGroup Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'android'">
-		<GoogleServicesJson Include="google-services.json" />
-	</ItemGroup>
 
 	<ItemGroup Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'ios'">
 		<BundleResource Include="GoogleService-Info.plist" />
+	</ItemGroup>
+
+	<ItemGroup Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'android'">
+		<GoogleServicesJson Include="google-services.json" />
 	</ItemGroup>
 
 	<ItemGroup>

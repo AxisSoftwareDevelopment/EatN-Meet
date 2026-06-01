@@ -2,22 +2,18 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-	<key>CLIENT_ID</key>
-	<string>443931860533-qvbr5rtfbiuj38igse012ouu05d2qd3h.apps.googleusercontent.com</string>
-	<key>REVERSED_CLIENT_ID</key>
-	<string>com.googleusercontent.apps.443931860533-qvbr5rtfbiuj38igse012ouu05d2qd3h</string>
 	<key>API_KEY</key>
-	<string>AIzaSyCkoEqZYJLnLpIF6vkqgxKQXABooHvlwEo</string>
+	<string>AIzaSyCq6W5TwoSX2Z5cgPiB82YQAxYMJeKMjBQ</string>
 	<key>GCM_SENDER_ID</key>
-	<string>443931860533</string>
+	<string>9330336862</string>
 	<key>PLIST_VERSION</key>
 	<string>1</string>
 	<key>BUNDLE_ID</key>
-	<string>com.axissoftwaredevelopment.eatMeet</string>
+	<string>com.axissoftwaredevelopment.eatNmeet</string>
 	<key>PROJECT_ID</key>
-	<string>spotsv01</string>
+	<string>axissd-eatnmeet</string>
 	<key>STORAGE_BUCKET</key>
-	<string>spotsv01.appspot.com</string>
+	<string>axissd-eatnmeet.firebasestorage.app</string>
 	<key>IS_ADS_ENABLED</key>
 	<false></false>
 	<key>IS_ANALYTICS_ENABLED</key>
@@ -29,6 +25,6 @@
 	<key>IS_SIGNIN_ENABLED</key>
 	<true></true>
 	<key>GOOGLE_APP_ID</key>
-	<string>1:443931860533:ios:f2c562f591e6dd16b69b7c</string>
+	<string>1:9330336862:ios:6cba74f4324a11d23100cf</string>
 </dict>
 </plist>

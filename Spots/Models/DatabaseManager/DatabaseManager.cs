@@ -669,21 +669,26 @@ public static class DatabaseManager
     public static async Task<bool> Transaction_DeleteTableAsync(string tableID)
     {
         bool retVal = false;
+        string? tablePictureAddress = null;
         IDocumentReference tableDocument = CrossFirebaseFirestore.Current.GetCollection(COLLECTION_TABLES).GetDocument(tableID);
 
-        await CrossFirebaseFirestore.Current.RunTransactionAsync(async transaction => {
+        await CrossFirebaseFirestore.Current.RunTransactionAsync<bool>(transaction => {
             IDocumentSnapshot<Table_Firebase> table = transaction.GetDocument<Table_Firebase>(tableDocument);
 
             if (table?.Data != null)
             {
-                if (table.Data.TablePictureAddress.Length > 0)
-                {
-                    await FirebaseStorageManager.DeleteFile(table.Data.TablePictureAddress);
-                }
+                tablePictureAddress = table.Data.TablePictureAddress;
                 transaction.DeleteDocument(tableDocument);
                 retVal = true;
             }
+
+            return true;
         });
+
+        if (retVal && !string.IsNullOrEmpty(tablePictureAddress))
+        {
+            await FirebaseStorageManager.DeleteFile(tablePictureAddress);
+        }
 
         return retVal;
     }

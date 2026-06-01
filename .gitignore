@@ -353,5 +353,20 @@ Spots/Platforms/Android/AndroidManifest.xml
 
 AuthKey_72JZCZJYBF.p8
 *.p8
-Functions/functions/main.py
 vcpkg/
+
+# Android Keystore files (NEVER commit these - they contain signing keys)
+*.keystore
+*.jks
+*.keystore.properties
+keystore.properties
+release.keystore
+debug.keystore
+# Note: Debug keystore in %USERPROFILE%\.android\ is auto-generated and safe to ignore
+
+# Firebase configuration files (contain API keys and sensitive project info)
+google-services.json
+GoogleService-Info.plist
+
+# Local development scripts and utilities
+get-sha-fingerprints.ps1

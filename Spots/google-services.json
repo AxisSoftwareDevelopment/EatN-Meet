@@ -1,79 +1,26 @@
 {
   "project_info": {
-    "project_number": "443931860533",
-    "project_id": "spotsv01",
-    "storage_bucket": "spotsv01.appspot.com"
+    "project_number": "9330336862",
+    "project_id": "axissd-eatnmeet",
+    "storage_bucket": "axissd-eatnmeet.firebasestorage.app"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:443931860533:android:63d4321abb68531ab69b7c",
+        "mobilesdk_app_id": "1:9330336862:android:9a7ac97ca55c72d03100cf",
         "android_client_info": {
-          "package_name": "com.axissoftwaredevelopment.Spots"
+          "package_name": "com.axissoftwaredevelopment.eatNmeet"
         }
       },
-      "oauth_client": [
-        {
-          "client_id": "443931860533-lvbmdbnge1tdc2dmqpvmqg511ag25cv5.apps.googleusercontent.com",
-          "client_type": 3
-        }
-      ],
+      "oauth_client": [],
       "api_key": [
         {
-          "current_key": "AIzaSyDwbPpTlNP3qKEb3U2guZfFZeoww9EMwBY"
+          "current_key": "AIzaSyB9zmDYO-praWtq_NwlKRPiVgLkG4LTZB0"
         }
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": [
-            {
-              "client_id": "443931860533-lvbmdbnge1tdc2dmqpvmqg511ag25cv5.apps.googleusercontent.com",
-              "client_type": 3
-            },
-            {
-              "client_id": "443931860533-01q72iupljsan0fr3ti8h5ffcoodi8ht.apps.googleusercontent.com",
-              "client_type": 2,
-              "ios_info": {
-                "bundle_id": "com.axissoftwaredevelopment.Spots"
-              }
-            }
-          ]
-        }
-      }
-    },
-    {
-      "client_info": {
-        "mobilesdk_app_id": "1:443931860533:android:38e8a3bb3b82c260b69b7c",
-        "android_client_info": {
-          "package_name": "com.axissoftwaredevelopment.eatMeet"
-        }
-      },
-      "oauth_client": [
-        {
-          "client_id": "443931860533-lvbmdbnge1tdc2dmqpvmqg511ag25cv5.apps.googleusercontent.com",
-          "client_type": 3
-        }
-      ],
-      "api_key": [
-        {
-          "current_key": "AIzaSyDwbPpTlNP3qKEb3U2guZfFZeoww9EMwBY"
-        }
-      ],
-      "services": {
-        "appinvite_service": {
-          "other_platform_oauth_client": [
-            {
-              "client_id": "443931860533-lvbmdbnge1tdc2dmqpvmqg511ag25cv5.apps.googleusercontent.com",
-              "client_type": 3
-            },
-            {
-              "client_id": "443931860533-01q72iupljsan0fr3ti8h5ffcoodi8ht.apps.googleusercontent.com",
-              "client_type": 2,
-              "ios_info": {
-                "bundle_id": "com.axissoftwaredevelopment.Spots"
-              }
-            }
-          ]
+          "other_platform_oauth_client": []
         }
       }
     }
