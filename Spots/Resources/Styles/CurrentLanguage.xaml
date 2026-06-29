@@ -106,6 +106,7 @@
     <x:String x:Key="lbl_TablePictureField">Table Picture:</x:String> <!-- Label that indicates Table Picture field -->
     <x:String x:Key="lbl_TableName">Table Name</x:String> <!-- Label that indicates Table Name -->
     <x:String x:Key="lbl_Members">Members</x:String> <!-- Label that indicates Members -->
+    <x:String x:Key="lbl_ReceiveNotifications">Receive Notifications</x:String> <!-- Label that indicates notification preference -->
     <x:String x:Key="lbl_AbandonTable">Abandon Table</x:String> <!-- Label that indicates to abandon a Table -->
     <x:String x:Key="lbl_CurrentTableState_Sitting">You Are Sitting At This Table</x:String> <!-- Label that indicates the current sitting state of a user to a table -->
     <x:String x:Key="lbl_CurrentTableState_Away">You Are Away From This Table</x:String> <!-- Label that indicates the current away state of a user to a table -->

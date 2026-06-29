@@ -69,6 +69,60 @@ namespace eatMeet.Firestore
             catch { /* Try catch is necessary, because it throws an exception when hitting the timeout. */ }
         }
 
+        private static async Task<(IQuery query, bool success)> ApplyPaginationAsync<T>(IQuery query, string collection, string? lastItemQueriedID)
+        {
+            if (lastItemQueriedID == null)
+            {
+                return (query, true);
+            }
+
+            int retries = 0;
+            IDocumentSnapshot<T>? documentSnapshot = null;
+
+            while (documentSnapshot == null && retries < MAXIMUM_RETRIES)
+            {
+                try
+                {
+                    documentSnapshot = await CrossFirebaseFirestore.Current
+                        .GetCollection(collection)
+                        .GetDocument(lastItemQueriedID)
+                        .GetDocumentSnapshotAsync<T>();
+
+                    if (documentSnapshot.Data == null)
+                    {
+                        break;
+                    }
+
+                    query = query.StartingAfter(documentSnapshot);
+                    return (query, true);
+                }
+                catch (Exception ex)
+                {
+                    documentSnapshot = null;
+                    Console.WriteLine(ex.Message);
+                    retries++;
+                }
+            }
+
+            return (query, retries < MAXIMUM_RETRIES);
+        }
+
+        private static async Task<List<T>> ExecuteQueryAsync<T>(IQuery query)
+        {
+            List<T> results = [];
+            IQuerySnapshot<T> querySnapshot = await query.GetDocumentsAsync<T>();
+
+            foreach (var document in querySnapshot.Documents)
+            {
+                if (document != null)
+                {
+                    results.Add(document.Data);
+                }
+            }
+
+            return results;
+        }
+
         public static async Task<List<T>> QueryFiltered<T>(string collection,
             int? maxItems = null,
             string? filters_orderBy = null,
@@ -76,7 +130,6 @@ namespace eatMeet.Firestore
             Dictionary<string, object>? filters_ArrayContainsSingle = null,
             string? lastItemQueriedID = null)
         {
-            List<T>? retVal = [];
             int globalRetries = 0;
 
             while (globalRetries < MAXIMUM_RETRIES)
@@ -85,7 +138,7 @@ namespace eatMeet.Firestore
                 {
                     IQuery query = CrossFirebaseFirestore.Current.GetCollection(collection);
 
-                    if(maxItems != null)
+                    if (maxItems != null)
                     {
                         query = query.LimitedTo(maxItems.Value);
                     }
@@ -97,7 +150,7 @@ namespace eatMeet.Firestore
 
                     if (filters_ArrayContainsSingle != null)
                     {
-                        if(filters_ArrayContainsSingle.Count != 1) // Required condition as there can only be 1 such filter
+                        if (filters_ArrayContainsSingle.Count != 1) // Required condition as there can only be 1 such filter
                         {
                             throw new Exception("Query with multiple ArrayContainsSingle statement attempted.");
                         }
@@ -113,54 +166,25 @@ namespace eatMeet.Firestore
                         query = query.OrderBy(filters_orderBy);
                     }
 
-                    int retries = 0;
-                    while (lastItemQueriedID != null)
+                    var (paginatedQuery, paginationSuccess) = await ApplyPaginationAsync<T>(query, collection, lastItemQueriedID);
+                    if (!paginationSuccess)
                     {
-                        IDocumentSnapshot<T>? documentSnapshot = null;
-                        try
-                        {
-                            documentSnapshot = await CrossFirebaseFirestore.Current.GetCollection(collection).GetDocument(lastItemQueriedID).GetDocumentSnapshotAsync<T>();
-
-                            query = query.StartingAfter(documentSnapshot);
-                        }
-                        catch (Exception ex)
-                        {
-                            Console.WriteLine(ex.Message);
-                            retries++;
-                            if (retries > 5)
-                            {
-                                retVal = null;
-                            }
-                        }
+                        throw new Exception("Pagination failed after maximum retries");
                     }
 
-                    if (retVal != null)
-                    {
-                        IQuerySnapshot<T> querySnapshot = await query.GetDocumentsAsync<T>();
-                        foreach (var document in querySnapshot.Documents)
-                        {
-                            if (document != null)
-                            {
-                                retVal.Add(document.Data);
-                            }
-                        }
-
-                        return retVal;
-                    }
-
-                    throw new Exception("MaxDBRetriesReached");
+                    return await ExecuteQueryAsync<T>(paginatedQuery);
                 }
                 catch (Exception ex)
                 {
                     globalRetries++;
-                    if(globalRetries >= MAXIMUM_RETRIES)
+                    if (globalRetries >= MAXIMUM_RETRIES)
                     {
                         await UserInterface.DisplayPopUp_Regular("Unhandled Error", ex.Message, "Ok");
                     }
                 }
             }
 
-            return retVal?? [];
+            return [];
         }
 
         public static async Task<List<T>> QueryFiltered<T>(string collection,
@@ -170,7 +194,6 @@ namespace eatMeet.Firestore
             Dictionary<string, object[]>? filters_ArrayContainsAny = null,
             string? lastItemQueriedID = null)
         {
-            List<T>? retVal = [];
             int globalRetries = 0;
 
             while (globalRetries < MAXIMUM_RETRIES)
@@ -207,42 +230,13 @@ namespace eatMeet.Firestore
                         query = query.OrderBy(filters_orderBy);
                     }
 
-                    int retries = 0;
-                    while (lastItemQueriedID != null)
+                    var (paginatedQuery, paginationSuccess) = await ApplyPaginationAsync<T>(query, collection, lastItemQueriedID);
+                    if (!paginationSuccess)
                     {
-                        IDocumentSnapshot<T>? documentSnapshot = null;
-                        try
-                        {
-                            documentSnapshot = await CrossFirebaseFirestore.Current.GetCollection(collection).GetDocument(lastItemQueriedID).GetDocumentSnapshotAsync<T>();
-
-                            query = query.StartingAfter(documentSnapshot);
-                        }
-                        catch (Exception ex)
-                        {
-                            Console.WriteLine(ex.Message);
-                            retries++;
-                            if (retries > 5)
-                            {
-                                retVal = null;
-                            }
-                        }
+                        throw new Exception("Pagination failed after maximum retries");
                     }
 
-                    if (retVal != null)
-                    {
-                        IQuerySnapshot<T> querySnapshot = await query.GetDocumentsAsync<T>();
-                        foreach (var document in querySnapshot.Documents)
-                        {
-                            if (document != null)
-                            {
-                                retVal.Add(document.Data);
-                            }
-                        }
-
-                        return retVal;
-                    }
-
-                    throw new Exception("MaxDBRetriesReached");
+                    return await ExecuteQueryAsync<T>(paginatedQuery);
                 }
                 catch (Exception ex)
                 {
@@ -254,7 +248,7 @@ namespace eatMeet.Firestore
                 }
             }
 
-            return retVal ?? [];
+            return [];
         }
     }
 }

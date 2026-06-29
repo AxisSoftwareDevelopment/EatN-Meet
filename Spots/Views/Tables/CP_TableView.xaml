@@ -30,6 +30,11 @@
                         <Label Text="{Binding Description}" TextColor="{DynamicResource SecondaryAccent}"/>
                     </StackLayout>
 
+                    <StackLayout Orientation="Horizontal" Margin="15,5,15,10" HorizontalOptions="FillAndExpand">
+                        <Label Text="{DynamicResource lbl_ReceiveNotifications}" TextColor="{DynamicResource SecondaryAccent}" FontSize="16" VerticalOptions="Center" HorizontalOptions="FillAndExpand"/>
+                        <Switch x:Name="_switchNotifications" OnColor="Green" ThumbColor="{DynamicResource Tertiary}" VerticalOptions="Center"/>
+                    </StackLayout>
+
                     <StackLayout Orientation="Horizontal" Margin="15,0,15,5">
                         <Label Text="{DynamicResource lbl_Location}" TextColor="{DynamicResource Tertiary}" FontSize="18" FontAttributes="Bold" HorizontalOptions="Center" HorizontalTextAlignment="Center"/>
                     </StackLayout>

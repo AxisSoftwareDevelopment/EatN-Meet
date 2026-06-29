@@ -5,6 +5,8 @@ using eatMeet.Models;
 using eatMeet.ResourceManager;
 using eatMeet.Utilities;
 using eatMeet.Database;
+using eatMeet.Firestore;
+using eatMeet.Notifications;
 
 namespace eatMeet;
 
@@ -19,6 +21,8 @@ public partial class CP_TableView : ContentPage
     private string[] DialogLables = ["lbl_AreYouSure", "txt_TableAbandonConfirmationMessage", "lbl_Abandon", "lbl_Cancel"];
     private Table CachedTable;
     private readonly FeedContext<TableMember> CurrentFeedContext = new();
+    private bool _isInitializing = true;
+    private bool _isUpdatingNotifications = false;
 
     public CP_TableView(Table table)
 	{
@@ -65,37 +69,71 @@ public partial class CP_TableView : ContentPage
         _lblCurrentState.Text = userIsSitting ? CurrentStateLables[0] : CurrentStateLables[1];
         _lblCurrentState.SetValue(BackgroundColorProperty, userIsSitting ? STATE_COLOR_SITTING : STATE_COLOR_AWAY);
 
+        // Initialize notification toggle
+        string? currentUserId = SessionManager.CurrentSession?.Client?.UserID;
+        if (currentUserId != null)
+        {
+            bool receiveNotifications = GetUserNotificationPreference(currentUserId);
+            _switchNotifications.IsToggled = receiveNotifications;
+        }
+        _switchNotifications.Toggled += _switchNotifications_Toggled;
+        _isInitializing = false;
+
         _btnInteractWithTable.Clicked += _btnInteractWithTable_Clicked;
         _btnAbandonTable.Clicked += _btnAbandonTable_Clicked;
     }
 
     private async void _btnAbandonTable_Clicked(object? sender, EventArgs e)
     {
-        if( await UserInterface.DisplayPopPup_Choice(DialogLables[0], DialogLables[1], DialogLables[2], DialogLables[3])
+        if (await UserInterface.DisplayPopPup_Choice(DialogLables[0], DialogLables[1], DialogLables[2], DialogLables[3])
             && SessionManager.CurrentSession?.Client != null)
         {
-            await DatabaseManager.Transaction_RemoveUserFromTable(SessionManager.CurrentSession.Client.UserID, CachedTable.TableID);
-            await Navigation.PopAsync();
+            LockUI();
+            try
+            {
+                await DatabaseManager.Transaction_RemoveUserFromTable(SessionManager.CurrentSession.Client.UserID, CachedTable.TableID);
+                await Navigation.PopAsync();
+            }
+            finally
+            {
+                UnlockUI();
+            }
         }
     }
 
     private async void _btnInteractWithTable_Clicked(object? sender, EventArgs e)
     {
         string? userID = SessionManager.CurrentSession?.Client?.UserID;
-        if(userID != null)
+        if (userID != null)
         {
-            bool userIsSitting = CachedTable.SittingMembers.Contains(userID);
-            if (userIsSitting)
+            LockUI();
+            try
             {
-                CachedTable.SittingMembers.Remove(userID);
-            }
-            else
-            {
-                CachedTable.SittingMembers.Add(userID);
-            }
-            ChangeSittingStateUI(!userIsSitting);
+                bool userIsSitting = CachedTable.SittingMembers.Contains(userID);
+                if (userIsSitting)
+                {
+                    //CachedTable.SittingMembers.Remove(userID);
+                    CachedTable.SittingMembers = (await DatabaseManager.Transaction_StandFromTableFromTable(userID, CachedTable.TableID)).ToList();
 
-            await RefreshMembersList();
+                    // Send notification to members who want notifications
+                    await NotificationsManager.SendTableStandNotification(CachedTable, userID);
+                }
+                else
+                {
+                    //CachedTable.SittingMembers.Add(userID);
+                    CachedTable.SittingMembers = (await DatabaseManager.Transaction_SitAtTableFromTable(userID, CachedTable.TableID)).ToList();
+
+                    // Send notification to members who want notifications
+                    await NotificationsManager.SendTableSitNotification(CachedTable, userID);
+                }
+                UpdateSittingStateUI(userID);
+
+                await RefreshMembersList();
+            }
+            finally
+            {
+                UnlockUI();
+            }
         }
     }
 
@@ -106,7 +144,7 @@ public partial class CP_TableView : ContentPage
 
     private async Task<List<TableMember>> FetchMembers()
     {
-        List<TableMember> retVal = [];
+        List<TableMember> retVal = new List<TableMember>();
 
         if (SessionManager.CurrentSession?.Client != null)
         {
@@ -136,11 +174,86 @@ public partial class CP_TableView : ContentPage
         }
     }
 
-    private void ChangeSittingStateUI(bool bIsSitting)
+    private void UpdateSittingStateUI(string userID)
     {
+        bool bIsSitting = CachedTable.SittingMembers.Contains(userID);
         _btnInteractWithTable.Text = bIsSitting ? InteractionLables[0] : InteractionLables[1];
         _lblCurrentState.Text = bIsSitting ? CurrentStateLables[0] : CurrentStateLables[1];
         _lblCurrentState.SetValue(BackgroundColorProperty, bIsSitting ? STATE_COLOR_SITTING : STATE_COLOR_AWAY);
+    }
+
+    private void LockUI()
+    {
+        _btnInteractWithTable.IsEnabled = false;
+        _btnAbandonTable.IsEnabled = false;
+        _switchNotifications.IsEnabled = false;
+        _colMembers.IsEnabled = false;
+    }
+
+    private void UnlockUI()
+    {
+        _btnInteractWithTable.IsEnabled = true;
+        _btnAbandonTable.IsEnabled = true;
+        _switchNotifications.IsEnabled = true;
+        _colMembers.IsEnabled = true;
+    }
+
+    private bool GetUserNotificationPreference(string userId)
+    {
+        if (CachedTable.MemberData.TryGetValue(userId, out var metadata))
+        {
+            return metadata.ReceiveTableNotifications;
+        }
+        return true; // Default to true if not set
+    }
+
+    private async void _switchNotifications_Toggled(object? sender, ToggledEventArgs e)
+    {
+        // Prevent saving during initialization
+        if (_isInitializing)
+            return;
+
+        // Prevent concurrent updates
+        if (_isUpdatingNotifications)
+            return;
+
+        string? userId = SessionManager.CurrentSession?.Client?.UserID;
+        if (userId == null)
+            return;
+
+        _isUpdatingNotifications = true;
+        LockUI();
+
+        try
+        {
+            // Update local model
+            if (!CachedTable.MemberData.ContainsKey(userId))
+            {
+                CachedTable.MemberData[userId] = new MemberMetadata();
+            }
+            CachedTable.MemberData[userId].ReceiveTableNotifications = e.Value;
+
+            // Update in Firestore
+            await FirestoreManager.UpdateSpecificData(
+                "Tables",
+                CachedTable.TableID,
+                $"MemberData.{userId}.ReceiveTableNotifications",
+                e.Value
+            );
+        }
+        catch (Exception ex)
+        {
+            await UserInterface.DisplayPopUp_Regular(ErrorLables[0], ex.Message, ErrorLables[1]);
+            // Revert toggle on error
+            _isInitializing = true;
+            _switchNotifications.IsToggled = !e.Value;
+            _isInitializing = false;
+        }
+        finally
+        {
+            UnlockUI();
+            _isUpdatingNotifications = false;
+        }
     }
 
     private class TableMember

@@ -693,6 +693,51 @@ public static class DatabaseManager
         return retVal;
     }
 
+    public static async Task<IList<string>> Transaction_SitAtTableFromTable(string clientID, string tableID)
+    {
+        IDocumentReference tableDocument = CrossFirebaseFirestore.Current.GetCollection(COLLECTION_TABLES).GetDocument(tableID);
+
+        IList<string> sittingMembers = await CrossFirebaseFirestore.Current.RunTransactionAsync(transaction => {
+            IList<string> newSittingMembers = new List<string>();
+            IDocumentSnapshot <Table_Firebase> table = transaction.GetDocument<Table_Firebase>(tableDocument);
+
+            if (table?.Data != null
+                && table.Data.TableMembers.Contains(clientID)
+                && !table.Data.OnlineMembers.Contains(clientID))
+            {
+                newSittingMembers = table.Data.OnlineMembers;
+                newSittingMembers.Add(clientID);
+                transaction.UpdateData(tableDocument, (nameof(Table_Firebase.OnlineMembers), newSittingMembers));
+            }
+
+            return newSittingMembers;
+        });
+
+        return sittingMembers;
+    }
+
+    public static async Task<IList<string>> Transaction_StandFromTableFromTable(string clientID, string tableID)
+    {
+        IDocumentReference tableDocument = CrossFirebaseFirestore.Current.GetCollection(COLLECTION_TABLES).GetDocument(tableID);
+
+        IList<string> sittingMembers = await CrossFirebaseFirestore.Current.RunTransactionAsync(transaction => {
+            IList<string> newSittingMembers = new List<string>();
+            IDocumentSnapshot<Table_Firebase> table = transaction.GetDocument<Table_Firebase>(tableDocument);
+
+            if (table?.Data != null
+                && table.Data.OnlineMembers.Contains(clientID))
+            {
+                newSittingMembers = table.Data.OnlineMembers;
+                newSittingMembers.Remove(clientID);
+                transaction.UpdateData(tableDocument, (nameof(Table_Firebase.OnlineMembers), newSittingMembers));
+            }
+
+            return newSittingMembers;
+        });
+
+        return sittingMembers;
+    }
+
     public static async Task<bool> Transaction_RemoveUserFromTable(string clientID, string tableID)
     {
         bool retVal = true;
@@ -702,30 +747,24 @@ public static class DatabaseManager
             bool isTableEmpty = false;
             IDocumentSnapshot<Table_Firebase> table = transaction.GetDocument<Table_Firebase>(tableDocument);
 
-            if (table?.Data != null)
+            if (table?.Data != null
+                && table.Data.TableMembers.Contains(clientID))
             {
-                if(table.Data.TableMembers.Contains(clientID))
+                IList<string> newTableMembers = table.Data.TableMembers;
+                newTableMembers.Remove(clientID);
+                if (newTableMembers.Count == 0)
                 {
-                    IList<string> newTableMembers = table.Data.TableMembers;
-                    newTableMembers.Remove(clientID);
-                    if (newTableMembers.Count == 0)
-                    {
-                        isTableEmpty = true;
-                    }
-                    else
-                    {
-                        transaction.UpdateData(tableDocument, (nameof(Table_Firebase.TableMembers), newTableMembers));
-                    }
+                    isTableEmpty = true;
+                    transaction.DeleteDocument(tableDocument);
+                }
+                else
+                {
+                    transaction.UpdateData(tableDocument, (nameof(Table_Firebase.TableMembers), newTableMembers));
                 }
             }
 
             return isTableEmpty;
         });
-
-        if (isTableEmpty)
-        {
-            await Transaction_DeleteTableAsync(tableID);
-        }
 
         return retVal;
     }

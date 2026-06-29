@@ -4,6 +4,22 @@ using eatMeet.Database;
 
 namespace eatMeet.Models
 {
+    public class MemberMetadata
+    {
+        [FirestoreProperty(nameof(ReceiveTableNotifications))]
+        public bool ReceiveTableNotifications { get; set; }
+
+        public MemberMetadata()
+        {
+            ReceiveTableNotifications = true; // Default to true
+        }
+
+        public MemberMetadata(bool receiveTableNotifications)
+        {
+            ReceiveTableNotifications = receiveTableNotifications;
+        }
+    }
+
     public class Table
     {
         public List<string> SittingMembers {  get; set; }
@@ -13,6 +29,7 @@ namespace eatMeet.Models
         public string Description { get; set; }
         public List<string> TableMembers { get; set; }
         public FirebaseLocation Location { get; set; }
+        public Dictionary<string, MemberMetadata> MemberData { get; set; }
         public int OnlineCount
         {
             get
@@ -38,6 +55,7 @@ namespace eatMeet.Models
             Description = "";
             TableMembers = [];
             Location = new();
+            MemberData = new Dictionary<string, MemberMetadata>();
         }
 
         public Table(Table_Firebase table, ImageSource tablePictureSource)
@@ -49,6 +67,9 @@ namespace eatMeet.Models
             Description = table.Description;
             TableMembers = [.. table.TableMembers];
             Location = table.Location;
+            MemberData = table.MemberData != null 
+                ? new Dictionary<string, MemberMetadata>(table.MemberData) 
+                : new Dictionary<string, MemberMetadata>();
         }
 
         public async Task UpdateTablePicture(string address)
@@ -90,6 +111,9 @@ namespace eatMeet.Models
         [FirestoreProperty(nameof(Location))]
         public FirebaseLocation Location { get; set; }
 
+        [FirestoreProperty(nameof(MemberData))]
+        public IDictionary<string, MemberMetadata> MemberData { get; set; }
+
         public Table_Firebase()
         {
             TableID = string.Empty;
@@ -99,6 +123,7 @@ namespace eatMeet.Models
             Description = string.Empty;
             TableMembers = [];
             Location = new();
+            MemberData = new Dictionary<string, MemberMetadata>();
         }
 
         public Table_Firebase(Table table, string tablePictureAddress)
@@ -110,6 +135,9 @@ namespace eatMeet.Models
             Description = table.Description;
             TableMembers = table.TableMembers;
             Location = table.Location;
+            MemberData = table.MemberData != null 
+                ? new Dictionary<string, MemberMetadata>(table.MemberData) 
+                : new Dictionary<string, MemberMetadata>();
         }
 
         public async Task<ImageSource> GetImageSource()
