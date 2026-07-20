@@ -2,7 +2,6 @@ using eatMeet.Database;
 using eatMeet.GooglePlacesService;
 using eatMeet.Models;
 using eatMeet.Utilities;
-using Java.Lang;
 using Microsoft.Maui.Controls.Maps;
 using Microsoft.Maui.Maps;
 

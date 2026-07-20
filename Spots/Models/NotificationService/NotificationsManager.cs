@@ -110,7 +110,16 @@ namespace eatMeet.Notifications
 
         public async Task UpdateNotifications()
         {
-            List<INotification> notifications = await DatabaseManager.FetchNotifications_Filtered(ownerID: SessionManager.CurrentSession?.Client?.UserID);
+            // If there is no current user, skip fetching notifications to avoid Firestore permission errors
+            var ownerID = SessionManager.CurrentSession?.Client?.UserID;
+            if (string.IsNullOrEmpty(ownerID))
+            {
+                _notificationsCount = 0;
+                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(NotificationsPageIcon)));
+                return;
+            }
+
+            List<INotification> notifications = await DatabaseManager.FetchNotifications_Filtered(ownerID: ownerID);
             _notificationsCount = notifications.Count;
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(NotificationsPageIcon)));
         }

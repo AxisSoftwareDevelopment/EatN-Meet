@@ -11,15 +11,9 @@ public partial class CP_SideUserMenu : ContentPage
     {
         DisplayInfo displayInfo = DeviceDisplay.MainDisplayInfo;
         double profilePictureDimensions = displayInfo.Height * 0.065;
-        TapGestureRecognizer layoutTapRecognizer = new();
-        layoutTapRecognizer.Tapped += (s, e) => {};
 
         InitializeComponent();
         BindingContext = SessionManager.CurrentSession?.Client;
-        // We add a gesture recognizer to avoid clickthrough behaviour.
-        // this might be fixed in the future and no longer necessary.
-        _LayoutView.GestureRecognizers.Add( layoutTapRecognizer );
-        //CurrentSession.OnSessionModeChanged += CurrentSession_OnSessionModeChanged;
 
         _FrameProfilePicture.WidthRequest = profilePictureDimensions;
         _FrameProfilePicture.HeightRequest = profilePictureDimensions;

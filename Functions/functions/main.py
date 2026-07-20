@@ -58,6 +58,42 @@ def _clamp(value: int, minimum: int, maximum: int) -> int:
     return max(minimum, min(value, maximum))
 
 
+def _as_number(value, default=0):
+    """Coerce a value to a number (int) safely.
+
+    Handles ints, floats, numeric strings, and simple dict wrappers like {'value': 123} which
+    some clients/platforms may send when serializing.
+    """
+    if value is None:
+        return default
+    # Already numeric
+    if isinstance(value, (int, float)):
+        return value
+    # Numeric string
+    if isinstance(value, str):
+        try:
+            if "." in value:
+                return float(value)
+            return int(value)
+        except Exception:
+            return default
+    # Wrapped in a dict (common from some platforms)
+    if isinstance(value, dict):
+        # Try common wrapper keys
+        for k in ("value", "Value", "v", "V"):
+            if k in value:
+                return _as_number(value[k], default)
+        # If dict contains a single item, try to coerce it
+        if len(value) == 1:
+            try:
+                only = next(iter(value.values()))
+                return _as_number(only, default)
+            except Exception:
+                return default
+        return default
+    return default
+
+
 def _http_request(method: str, url: str, **kwargs):
     last_error: Exception | None = None
     for attempt in range(HTTP_RETRY_COUNT + 1):
@@ -135,8 +171,9 @@ def MAPS_GET_ALL_RESTAURANTS(request: https_fn.CallableRequest):
         param_TextQuery = request.data.get("textQuery", "") # Get the text query from the request data
         param_Location_Latitude = request.data.get("locationLatitude", 0.0) # Get the latitude from the request data, default to 0.0
         param_Location_Longitude = request.data.get("locationLongitude", 0.0) # Get the longitude from the request data, default to 0.0
-        param_SearchRadius = request.data.get("searchRadius", -1) # Get the search radius from the request data, default to -1 (no radius)
-        param_PageSize = request.data.get("pageSize", 10) # Get the page size from the request data, default to 10
+        # Coerce numeric params safely — some clients may serialize numbers as wrapped dicts
+        param_SearchRadius = _as_number(request.data.get("searchRadius", -1), -1) # Get the search radius from the request data, default to -1 (no radius)
+        param_PageSize = _as_number(request.data.get("pageSize", 10), 10) # Get the page size from the request data, default to 10
         param_PageToken = request.data.get("pageToken", "") # Get the page token from the request data, default to empty string
         url = GOOGLE_PLACES_URL + "places:searchText" # Construct the URL for the Places API search endpoint
 
@@ -236,8 +273,8 @@ def MAPS_GET_PLACE_PICTURES(request: https_fn.CallableRequest):
     try:
         _require_authenticated_user(request)
         param_PhotoNames = request.data.get("photoNames", "") # Get the photo names from the request data
-        param_MaxHeightPx = _clamp(int(request.data.get("maxHeightPx", 400)), MIN_IMAGE_DIMENSION, MAX_IMAGE_DIMENSION)
-        param_MaxWidthPx = _clamp(int(request.data.get("maxWidthPx", 400)), MIN_IMAGE_DIMENSION, MAX_IMAGE_DIMENSION)
+        param_MaxHeightPx = _clamp(int(_as_number(request.data.get("maxHeightPx", 400), 400)), MIN_IMAGE_DIMENSION, MAX_IMAGE_DIMENSION)
+        param_MaxWidthPx = _clamp(int(_as_number(request.data.get("maxWidthPx", 400), 400)), MIN_IMAGE_DIMENSION, MAX_IMAGE_DIMENSION)
         photos = GetPlacePictures(METHOD_NAME, param_PhotoNames, param_MaxWidthPx, param_MaxHeightPx) # Call the function to get the place pictures
         print(f"{METHOD_NAME} - Output: [{photos}]")
         print(f"\n\t<----- Finished Cloud Function - {METHOD_NAME} ----->")

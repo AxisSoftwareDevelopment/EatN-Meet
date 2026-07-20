@@ -4,6 +4,8 @@ using Android.Content;
 using Plugin.Firebase.CloudMessaging;
 using Android.OS;
 using Android;
+using eatMeet.Database;
+using Microsoft.Maui.ApplicationModel;
 
 namespace eatMeet;
 
@@ -49,6 +51,15 @@ public class MainActivity : MauiAppCompatActivity
         FirebaseCloudMessagingImplementation.ChannelId = channelId;
         //FirebaseCloudMessagingImplementation.SmallIconRef = Resource.Drawable.ic_push_small;
         PermissionStatus status = await Permissions.RequestAsync<NotificationPermission>();
+
+        if (status == PermissionStatus.Granted)
+        {
+            // Ensure we have the latest token and persist it to Firestore
+            MainThread.BeginInvokeOnMainThread(() =>
+            {
+                Task.Run(async () => await DatabaseManager.UpdateCurrentUserFCMToken());
+            });
+        }
     }
 
     private class NotificationPermission : Permissions.BasePlatformPermission

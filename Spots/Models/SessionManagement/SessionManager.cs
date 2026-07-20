@@ -10,10 +10,12 @@ public static class SessionManager
 
     public static async Task<bool> StartSessionAsync(Client user)
     {
-        await NotificationsManager.Handler.UpdateNotifications();
         if (CurrentSession == null)
         {
             CurrentSession = new(user);
+
+            // Update notifications for the newly-started session (requires CurrentSession to be set)
+            await NotificationsManager.Handler.UpdateNotifications();
 
             return true;
         }
