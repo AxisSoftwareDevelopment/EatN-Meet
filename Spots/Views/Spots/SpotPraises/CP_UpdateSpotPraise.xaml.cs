@@ -20,7 +20,7 @@ public partial class CP_UpdateSpotPraise : ContentPage
         set
         {
             _LoadingResults = value;
-            _borderSpotSearch.IsVisible = _LoadingResults || SearchBoxContext.ItemSource.Count > 0;
+            UpdateResultsVisibility();
             OnPropertyChanged(nameof(LoadingResults));
         }
     }
@@ -37,8 +37,11 @@ public partial class CP_UpdateSpotPraise : ContentPage
         _borderActLoadingIndicator.BindingContext = this;
         _actLoadingIndicator.BindingContext = this;
         _colSearchBarCollectionView.BindingContext = SearchBoxContext;
-        _colSearchBarCollectionView.MaximumHeightRequest = profilePictureDimensions * 2;
+        _colSearchBarCollectionView.ItemsSource = SearchBoxContext.ItemSource;
+        _colSearchBarCollectionView.MaximumHeightRequest = 220;
+        _borderSpotSearch.MaximumHeightRequest = 220;
         _colSearchBarCollectionView.SelectionChanged += _colSearchBarCollectionView_SelectionChanged;
+        UpdateResultsVisibility();
 
         DebouncedSearch = new (async (searchText) =>
         {
@@ -47,7 +50,7 @@ public partial class CP_UpdateSpotPraise : ContentPage
             // Show or hide the search results frame
             MainThread.BeginInvokeOnMainThread(() =>
             {
-                _colSearchBarCollectionView.IsVisible = LoadingResults || !string.IsNullOrEmpty(searchText) && SearchBoxContext.ItemSource.Count > 0;
+                UpdateResultsVisibility();
             });
         });
         _entrySpotSearchBar.TextChanged += async (sender, e) =>
@@ -84,6 +87,26 @@ public partial class CP_UpdateSpotPraise : ContentPage
             _editorDescription.Text = MainSpotPraise.Comment;
             _imgAttachmentImage.Source = MainSpotPraise.AttachedPicture;
             _SpotImage.Source = MainSpotPraise.SpotProfilePicture;
+        }
+    }
+
+    private void UpdateResultsVisibility()
+    {
+        bool shouldShow = _LoadingResults || SearchBoxContext.ItemSource.Count > 0;
+        _borderSpotSearch.IsVisible = shouldShow;
+        _colSearchBarCollectionView.IsVisible = shouldShow;
+
+        if (shouldShow)
+        {
+            double rowHeight = 64;
+            double desiredHeight = Math.Min(220, Math.Max(80, SearchBoxContext.ItemSource.Count * rowHeight));
+            _colSearchBarCollectionView.HeightRequest = desiredHeight;
+            _borderSpotSearch.HeightRequest = desiredHeight + 16;
+        }
+        else
+        {
+            _colSearchBarCollectionView.HeightRequest = 0;
+            _borderSpotSearch.HeightRequest = 0;
         }
     }
 
@@ -147,9 +170,16 @@ public partial class CP_UpdateSpotPraise : ContentPage
         {
             MainSpotPraise.Comment = _editorDescription.Text?.Trim() ?? "";
 
-            if(await DatabaseManager.Transaction_SaveSpotPraiseData(MainSpotPraise, _AttachmentFile))
+            try
             {
-                await Navigation.PopAsync();
+                if(await DatabaseManager.Transaction_SaveSpotPraiseData(MainSpotPraise, _AttachmentFile))
+                {
+                    await Navigation.PopAsync();
+                }
+            }
+            catch (Exception ex)
+            {
+                await UserInterface.DisplayPopUp_Regular("Unhandled Error", ex.Message, "OK");
             }
         }
         UnlockInputs();

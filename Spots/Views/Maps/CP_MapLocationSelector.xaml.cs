@@ -10,8 +10,8 @@ namespace eatMeet;
 public partial class CP_MapLocationSelector : ContentPage
 {
     private Action<Location, string>? _setSelectedLocation;
-    private string _selectedAddress;
-    private Location _selectedLocation;
+    private string _selectedAddress = string.Empty;
+    private Location _selectedLocation = default!;
     private readonly FeedContext<Spot> SearchResultsListContext = new();
     private readonly DebouncedAction<string> DebouncedSearch;
     private bool _LoadingResults = false;
@@ -22,7 +22,7 @@ public partial class CP_MapLocationSelector : ContentPage
         set
         {
             _LoadingResults = value;
-            _frameSearchResults.IsVisible = _LoadingResults || SearchResultsListContext.ItemSource.Count > 0;
+            UpdateResultsVisibility();
 
             OnPropertyChanged(nameof(LoadingResults));
         }
@@ -37,7 +37,11 @@ public partial class CP_MapLocationSelector : ContentPage
 
         _actLoadingIndicator.BindingContext = this;
         _colSearchBarCollectionView.BindingContext = SearchResultsListContext;
+        _colSearchBarCollectionView.ItemsSource = SearchResultsListContext.ItemSource;
+        _colSearchBarCollectionView.MaximumHeightRequest = 220;
+        _frameSearchResults.MaximumHeightRequest = 220;
         _colSearchBarCollectionView.SelectionChanged += _colSearchBarCollectionView_SelectionChanged;
+        UpdateResultsVisibility();
 
         DebouncedSearch = new(RefreshSearchResults);
         _entrySearchTerms.TextChanged += async (sender, e) =>
@@ -90,6 +94,26 @@ public partial class CP_MapLocationSelector : ContentPage
                 Label = _selectedAddress,
                 Location = _selectedLocation
             });
+        }
+    }
+
+    private void UpdateResultsVisibility()
+    {
+        bool shouldShow = _LoadingResults || SearchResultsListContext.ItemSource.Count > 0;
+        _frameSearchResults.IsVisible = shouldShow;
+        _colSearchBarCollectionView.IsVisible = shouldShow;
+
+        if (shouldShow)
+        {
+            double rowHeight = 64;
+            double desiredHeight = Math.Min(220, Math.Max(80, SearchResultsListContext.ItemSource.Count * rowHeight));
+            _colSearchBarCollectionView.HeightRequest = desiredHeight;
+            _frameSearchResults.HeightRequest = desiredHeight + 16;
+        }
+        else
+        {
+            _colSearchBarCollectionView.HeightRequest = 0;
+            _frameSearchResults.HeightRequest = 0;
         }
     }
 

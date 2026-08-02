@@ -630,12 +630,38 @@ public static class DatabaseManager
     public static async Task<bool> Transaction_SaveSpotPraiseData(SpotPraise praise, ImageFile? imageFile = null)
     {
         SpotPraise_Firebase praise_Firebase = new(praise);
-        if (imageFile != null)
+        bool isNewPraise = string.IsNullOrWhiteSpace(praise_Firebase.PraiseID);
+
+        if (isNewPraise)
         {
-            praise_Firebase.AttachedPictureAddress = await SaveFile($"Users/{praise_Firebase.AuthorID}/PraiseAttachments", praise_Firebase.PraiseID, imageFile);
+            // Save first so Firestore generates an ID that can be used as the attachment file name.
+            praise_Firebase.PraiseID = await FirestoreManager.SetDocumentData(COLLECTION_PRAISES, praise_Firebase);
+
+            if (imageFile != null)
+            {
+                try
+                {
+                    praise_Firebase.AttachedPictureAddress = await SaveFile($"Users/{praise_Firebase.AuthorID}/PraiseAttachments", praise_Firebase.PraiseID, imageFile);
+                    await FirestoreManager.UpdateSpecificData(COLLECTION_PRAISES, praise_Firebase.PraiseID, nameof(SpotPraise_Firebase.AttachedPictureAddress), praise_Firebase.AttachedPictureAddress);
+                }
+                catch (Exception ex)
+                {
+                    await UserInterface.DisplayPopUp_Regular("Unhandled Error", ex.Message, "OK");
+                }
+            }
+        }
+        else if (imageFile != null)
+        {
+            try
+            {
+                praise_Firebase.AttachedPictureAddress = await SaveFile($"Users/{praise_Firebase.AuthorID}/PraiseAttachments", praise_Firebase.PraiseID, imageFile);
+            }
+            catch (Exception ex)
+            {
+                await UserInterface.DisplayPopUp_Regular("Unhandled Error", ex.Message, "OK");
+            }
         }
 
-        // Get document reference
         IDocumentReference praiseDocRef = CrossFirebaseFirestore.Current.GetCollection(COLLECTION_PRAISES).GetDocument(praise_Firebase.PraiseID);
         IDocumentReference spotDocRef = CrossFirebaseFirestore.Current.GetCollection(COLLECTION_SPOTS).GetDocument(praise_Firebase.SpotID);
 
@@ -643,24 +669,33 @@ public static class DatabaseManager
         {
             IDocumentSnapshot<Spot_Firebase> existingSpot = transaction.GetDocument<Spot_Firebase>(spotDocRef);
 
-            // Update Praise Data
-            transaction.UpdateData(praiseDocRef, (nameof(praise_Firebase.Comment), praise_Firebase.Comment));
-            // Only update the picture address if its an existing praise, else the immage is added in the AddDocumentAsync call.
-            if (imageFile != null && praise_Firebase.PraiseID.Length > 0)
+            if (isNewPraise)
             {
-                transaction.UpdateData(praiseDocRef, (nameof(praise_Firebase.AttachedPictureAddress), praise_Firebase.AttachedPictureAddress));
+                // Praise was already created above to obtain a document ID; only spot updates are needed here.
+                if (existingSpot?.Data == null)
+                {
+                    // Magic number 1 = Initial Praise Count
+                    transaction.SetData(spotDocRef, new Spot_Firebase(spotDocRef.Id, praise.SpotFullName, praise.SpotLocation, praise.SpotProfilePictureAddress ?? "", 1));
+                }
+                else
+                {
+                    transaction.UpdateData(spotDocRef, (nameof(Spot_Firebase.PraiseCount), existingSpot.Data.PraiseCount + 1));
+                }
             }
+            else
+            {
+                transaction.UpdateData(praiseDocRef, (nameof(praise_Firebase.Comment), praise_Firebase.Comment));
 
-            // Update Spot Praise Count
-            if (existingSpot?.Data == null)
-            {
-                // Magic number 1 = Initial Praise Count
-                transaction.SetData(spotDocRef, new Spot_Firebase(spotDocRef.Id, praise.SpotFullName, praise.SpotLocation, praise.SpotProfilePictureAddress ?? "", 1));
-            }
-            else if (praise_Firebase.PraiseID.Length == 0)
-            {
-                // If its a new praise, we increase the praise count
-                transaction.UpdateData(spotDocRef, (nameof(Spot_Firebase.PraiseCount), existingSpot.Data.PraiseCount + 1));
+                if (imageFile != null)
+                {
+                    transaction.UpdateData(praiseDocRef, (nameof(praise_Firebase.AttachedPictureAddress), praise_Firebase.AttachedPictureAddress));
+                }
+
+                if (existingSpot?.Data == null)
+                {
+                    // Magic number 1 = Initial Praise Count
+                    transaction.SetData(spotDocRef, new Spot_Firebase(spotDocRef.Id, praise.SpotFullName, praise.SpotLocation, praise.SpotProfilePictureAddress ?? "", 1));
+                }
             }
 
             return true;

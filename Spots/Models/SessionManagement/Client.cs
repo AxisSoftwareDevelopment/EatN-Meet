@@ -2,6 +2,7 @@
 using System.ComponentModel;
 
 using eatMeet.Database;
+using eatMeet.Utilities;
 
 namespace eatMeet.Models;
 public class Client : INotifyPropertyChanged

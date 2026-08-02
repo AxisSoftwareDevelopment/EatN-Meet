@@ -29,8 +29,8 @@
             <Border x:Name="_frameSearchBar"  StrokeShape="RoundRectangle 15" BackgroundColor="{DynamicResource Secondary}" Margin="10,10,10,0">
                 <SearchBar x:Name="_entrySearchTerms"/>
             </Border>
-            <Border x:Name="_frameSearchResults" Margin="20,0,20,10" StrokeShape="RoundRectangle 15" BackgroundColor="{DynamicResource Secondary}" IsVisible="False">
-                <StackLayout Orientation="Vertical" Margin="15">
+            <Border x:Name="_frameSearchResults" Margin="20,0,20,10" StrokeShape="RoundRectangle 15" BackgroundColor="{DynamicResource Secondary}" IsVisible="False" VerticalOptions="Start" MinimumHeightRequest="0" MaximumHeightRequest="220">
+                <VerticalStackLayout Margin="10">
                     <ActivityIndicator 
                         x:Name="_actLoadingIndicator"
                         IsRunning="{Binding LoadingResults, Mode=OneWay}"
@@ -39,14 +39,24 @@
                         HorizontalOptions="Center"
                         Color="{DynamicResource Tertiary}"/>
                     <!-- Search Results -->
-                    <CollectionView x:Name="_colSearchBarCollectionView" HorizontalOptions="FillAndExpand" ItemsSource="{Binding ItemSource}" SelectionMode="Single">
+                    <CollectionView x:Name="_colSearchBarCollectionView" HorizontalOptions="FillAndExpand" SelectionMode="Single" Margin="0,3,0,0" MinimumHeightRequest="0" MaximumHeightRequest="220">
                         <CollectionView.ItemTemplate>
                             <DataTemplate>
-                                <searchBar:CV_SearchBarDataTemplate/>
+                                <Border Margin="5, 0, 5, 5" Padding="8" StrokeShape="RoundRectangle 5,5,5,5" BackgroundColor="{DynamicResource Secondary}">
+                                    <Grid ColumnDefinitions="Auto,*" ColumnSpacing="8">
+                                        <Border Grid.Column="0" StrokeShape="RoundRectangle 5,5,5,5" StrokeThickness="0" WidthRequest="50" HeightRequest="50">
+                                            <Image Source="{Binding ProfilePictureSource}" Aspect="AspectFill" BackgroundColor="{DynamicResource Primary}"/>
+                                        </Border>
+                                        <VerticalStackLayout Grid.Column="1" Spacing="2">
+                                            <Label Text="{Binding Name}" FontSize="Medium" FontAttributes="Bold" TextColor="{DynamicResource SecondaryAccent}" MaxLines="2"/>
+                                            <Label Text="{Binding FullName}" FontSize="Small" LineBreakMode="WordWrap" TextColor="{DynamicResource SecondaryAccent}" MaxLines="2"/>
+                                        </VerticalStackLayout>
+                                    </Grid>
+                                </Border>
                             </DataTemplate>
                         </CollectionView.ItemTemplate>
                     </CollectionView>
-                </StackLayout>
+                </VerticalStackLayout>
             </Border>
         </VerticalStackLayout>
     </Grid>

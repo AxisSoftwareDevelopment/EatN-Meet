@@ -11,21 +11,21 @@
     </NavigationPage.TitleView>
 
     <ContentPage.Content>
-        <StackLayout Orientation="Vertical">
-            <Border x:Name="_frameSearchBar"  StrokeShape="RoundRectangle 15" VerticalOptions="Start" BackgroundColor="{DynamicResource Secondary}" Margin="10,0,10,0">
+        <Grid RowDefinitions="Auto,Auto,*">
+            <Border Grid.Row="0" x:Name="_frameSearchBar" StrokeShape="RoundRectangle 15" VerticalOptions="Start" BackgroundColor="{DynamicResource Secondary}" Margin="10,0,10,0">
                 <SearchBar x:Name="_entrySearchTerms"/>
             </Border>
 
             <!-- Search Objective Selector -->
-            <StackLayout Orientation="Horizontal" HorizontalOptions="Center" Margin="20,10">
+            <StackLayout Grid.Row="1" Orientation="Horizontal" HorizontalOptions="Center" Margin="20,10">
                 <Label Text="{DynamicResource lbl_Filters}" TextColor="{DynamicResource PrimaryAccent}" VerticalOptions="Center"/>
                 <RadioButton x:Name="_rbtnClientFilter" Content="{DynamicResource lbl_ClientFilter}" GroupName="SearchFilterGroup" Background="{DynamicResource Primary}" TextColor="{DynamicResource PrimaryAccent}" IsChecked="True"/>
                 <RadioButton x:Name="_rbtnSpotFilet" Content="{DynamicResource lbl_SpotFilter}" GroupName="SearchFilterGroup" Background="{DynamicResource Primary}" TextColor="{DynamicResource PrimaryAccent}"/>
             </StackLayout>
 
-            <Border x:Name="_frameSearchResults" Margin="20,0,20,10" StrokeShape="RoundRectangle 15" BackgroundColor="{DynamicResource Secondary}" VerticalOptions="Start" IsVisible="False">
-                <StackLayout Orientation="Vertical" Margin="15">
-                    <ActivityIndicator 
+            <Border Grid.Row="2" x:Name="_frameSearchResults" Margin="20,0,20,10" StrokeShape="RoundRectangle 15" BackgroundColor="{DynamicResource Secondary}" IsVisible="False">
+                <Grid RowDefinitions="Auto,*,Auto" Margin="15">
+                    <ActivityIndicator Grid.Row="0"
                         x:Name="_actLoadingIndicator"
                         IsRunning="{Binding LoadingResults, Mode=OneWay}"
                         IsVisible="{Binding LoadingResults, Mode=OneWay}"
@@ -33,15 +33,28 @@
                         HorizontalOptions="Center"
                         Color="{DynamicResource Tertiary}"/>
                     <!-- Search Results -->
-                    <CollectionView x:Name="_colSearchBarCollectionView" HorizontalOptions="FillAndExpand" ItemsSource="{Binding ItemSource}" SelectionMode="Single">
+                    <CollectionView Grid.Row="1"
+                                    x:Name="_colSearchBarCollectionView"
+                                    HorizontalOptions="Fill"
+                                    VerticalOptions="Fill"
+                                    SelectionMode="Single"
+                                    ItemSizingStrategy="MeasureAllItems">
                         <CollectionView.ItemTemplate>
                             <DataTemplate>
                                 <searchBar:CV_SearchBarDataTemplate/>
                             </DataTemplate>
                         </CollectionView.ItemTemplate>
                     </CollectionView>
-                </StackLayout>
+
+                    <Button Grid.Row="2"
+                            x:Name="_btnShowMore"
+                            Text="Show more"
+                            Margin="0,10,0,0"
+                            HorizontalOptions="Center"
+                            IsVisible="{Binding CanShowMoreResults, Mode=OneWay}"
+                            Clicked="OnShowMoreClicked"/>
+                </Grid>
             </Border>
-        </StackLayout>
+        </Grid>
     </ContentPage.Content>
 </ContentPage>

@@ -16,6 +16,21 @@ public partial class CP_SearchPage : ContentPage
 	private readonly FeedContext<object> SearchResultsListContext = new();
     private readonly DebouncedAction<string> DebouncedSearch;
     private bool _LoadingResults = false;
+    private bool _IsLoadingMoreResults = false;
+    private bool _HasMoreResults = true;
+    private string _CurrentSearchText = string.Empty;
+    private Client? _LastClientFetched = null;
+    private bool _CanShowMoreResults = false;
+
+    public bool CanShowMoreResults
+    {
+        get => _CanShowMoreResults;
+        set
+        {
+            _CanShowMoreResults = value;
+            OnPropertyChanged(nameof(CanShowMoreResults));
+        }
+    }
 
     public bool LoadingResults
     {
@@ -34,7 +49,9 @@ public partial class CP_SearchPage : ContentPage
 		InitializeComponent();
 		
         _actLoadingIndicator.BindingContext = this;
+        _btnShowMore.BindingContext = this;
         _colSearchBarCollectionView.BindingContext = SearchResultsListContext;
+        _colSearchBarCollectionView.ItemsSource = SearchResultsListContext.ItemSource;
         _colSearchBarCollectionView.SelectionChanged += _colSearchBarCollectionView_SelectionChanged;
 
         DebouncedSearch = new (RefreshSearchResults);
@@ -94,9 +111,77 @@ public partial class CP_SearchPage : ContentPage
         }
     }
 
+    private async void OnShowMoreClicked(object? sender, EventArgs e)
+    {
+        await LoadMoreResults();
+    }
+
+    private async Task LoadMoreResults()
+    {
+        if (_IsLoadingMoreResults || !_HasMoreResults || string.IsNullOrWhiteSpace(_CurrentSearchText))
+        {
+            return;
+        }
+
+        _IsLoadingMoreResults = true;
+        CanShowMoreResults = false;
+
+        try
+        {
+            List<object> nextItems = [];
+
+            if (CurrentFilterApplyed == ESearchFocus.CLIENT)
+            {
+                List<Client> clients = await DatabaseManager.FetchClients_Filtered(
+                    nameSearchTerms: [_CurrentSearchText],
+                    currentUsrID_ToAvoid: SessionManager.CurrentSession?.Client?.UserID,
+                    lastClient: _LastClientFetched);
+
+                clients = clients.GroupBy(c => c.UserID).Select(g => g.First()).ToList();
+                if (clients.Count == 0)
+                {
+                    _HasMoreResults = false;
+                }
+                else
+                {
+                    _LastClientFetched = clients.Last();
+                    clients.ForEach(nextItems.Add);
+                }
+            }
+            else
+            {
+                List<Spot> spotList = await GooglePlaces.GetAllRestaurants_NextPage();
+                if (spotList.Count == 0)
+                {
+                    _HasMoreResults = false;
+                }
+                else
+                {
+                    spotList.ForEach(nextItems.Add);
+                }
+            }
+
+            if (nextItems.Count > 0)
+            {
+                MainThread.BeginInvokeOnMainThread(() => SearchResultsListContext.AddElements(nextItems));
+            }
+        }
+        finally
+        {
+            _IsLoadingMoreResults = false;
+            CanShowMoreResults = _HasMoreResults && SearchResultsListContext.ItemSource.Count > 0;
+        }
+    }
+
     private async Task RefreshSearchResults(string searchInput)
     {
-        string[] inputs = searchInput != null ? [searchInput.ToUpper().Trim()] : [];
+        string trimmedSearch = searchInput?.Trim() ?? string.Empty;
+        _CurrentSearchText = trimmedSearch.ToUpperInvariant();
+        _HasMoreResults = true;
+        _LastClientFetched = null;
+        _IsLoadingMoreResults = false;
+
+        string[] inputs = !string.IsNullOrWhiteSpace(trimmedSearch) ? [_CurrentSearchText] : [];
         if (inputs.Length > 0)
         {
             List<object> list = [];
@@ -105,6 +190,10 @@ public partial class CP_SearchPage : ContentPage
                 List<Client> clients = await DatabaseManager.FetchClients_Filtered(nameSearchTerms: inputs, currentUsrID_ToAvoid: SessionManager.CurrentSession?.Client?.UserID);
                 // Remove duplicates by UserID
                 clients = clients.GroupBy(c => c.UserID).Select(g => g.First()).ToList();
+                if (clients.Count > 0)
+                {
+                    _LastClientFetched = clients.Last();
+                }
                 clients.ForEach(list.Add);
             }
             else
@@ -112,16 +201,25 @@ public partial class CP_SearchPage : ContentPage
                 Location? location = LocationManager.CurrentLocation ?? await LocationManager.GetUpdatedLocaionAsync();
                 if (location != null)
                 {
-                    List<Spot> spotList = await GooglePlaces.GetAllRestaurants(searchInput?.ToUpper().Trim() ?? "", location, 1000, 5);
+                    List<Spot> spotList = await GooglePlaces.GetAllRestaurants(trimmedSearch.ToUpperInvariant(), location, 1000, 5);
                     spotList.ForEach(list.Add);
+                    _HasMoreResults = spotList.Count > 0;
                 }
             }
 
-            SearchResultsListContext.RefreshFeed(list);
+            MainThread.BeginInvokeOnMainThread(() =>
+            {
+                SearchResultsListContext.RefreshFeed(list);
+                CanShowMoreResults = _HasMoreResults && SearchResultsListContext.ItemSource.Count > 0;
+            });
         }
         else
         {
-            SearchResultsListContext.RefreshFeed([]);
+            MainThread.BeginInvokeOnMainThread(() =>
+            {
+                SearchResultsListContext.RefreshFeed([]);
+                CanShowMoreResults = false;
+            });
         }
 
         LoadingResults = false;

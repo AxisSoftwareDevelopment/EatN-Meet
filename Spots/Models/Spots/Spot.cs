@@ -2,6 +2,7 @@
 using System.ComponentModel;
 
 using eatMeet.Database;
+using eatMeet.Utilities;
 
 namespace eatMeet.Models;
 public class Spot : INotifyPropertyChanged
@@ -42,7 +43,7 @@ public class Spot : INotifyPropertyChanged
         set
         {
             _profilePictureAddress = value;
-            ProfilePictureSource = string.IsNullOrEmpty(value) ? ImageSource.FromFile("logolong.png") : ImageSource.FromUri(new(value));
+            ProfilePictureSource = ImageSourceResolver.Resolve(value, "logolong.png");
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(ProfilePictureAddress)));
         }
     }
