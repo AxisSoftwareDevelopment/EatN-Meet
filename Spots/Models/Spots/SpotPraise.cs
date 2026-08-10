@@ -4,6 +4,7 @@ using System.ComponentModel;
 using eatMeet.Database;
 using eatMeet.Notifications;
 using eatMeet.GooglePlacesService;
+using eatMeet.Utilities;
 
 namespace eatMeet.Models;
 
@@ -139,10 +140,7 @@ public class SpotPraise : INotifyPropertyChanged
 
         if (praise.AttachedPictureAddress.Length > 0)
         {
-            string downloadAddress = await DatabaseManager.GetImageDownloadLink(praise.AttachedPictureAddress);
-            Uri imageUri = new(downloadAddress);
-
-            attachment = ImageSource.FromUri(imageUri);
+            attachment = await ImageSourceResolver.ResolveAsync(praise.AttachedPictureAddress, "logolong.png");
         }
 
         return new(praise, author, spot, attachment);
@@ -165,10 +163,7 @@ public class SpotPraise : INotifyPropertyChanged
                 {
                     if (praise.AttachedPictureAddress.Length > 0)
                     {
-                        string downloadAddress = await DatabaseManager.GetImageDownloadLink(praise.AttachedPictureAddress);
-                        Uri imageUri = new(downloadAddress);
-
-                        attachment = ImageSource.FromUri(imageUri);
+                        attachment = await ImageSourceResolver.ResolveAsync(praise.AttachedPictureAddress, "logolong.png");
                     }
 
                     spotPraises.Add(new(praise, managed_author, managed_spot, attachment));

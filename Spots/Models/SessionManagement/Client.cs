@@ -257,17 +257,7 @@ public class Client : INotifyPropertyChanged
 
     public async Task UpdateProfilePicture(string address)
     {
-        if(address.Length > 0)
-        {
-            string downloadAddress = await DatabaseManager.GetImageDownloadLink(address);
-            Uri imageUri = new( downloadAddress );
-
-            ProfilePictureSource = ImageSource.FromUri(imageUri);
-        }
-        else
-        {
-            ImageSource.FromFile("logoshort.png");
-        }
+        ProfilePictureSource = await ImageSourceResolver.ResolveAsync(address, "logoshort.png");
     }
 
     public async Task OpenClientView(INavigation? navigation)
@@ -413,18 +403,8 @@ public class Client_Firebase
         }
     }
 
-    public async Task<ImageSource> GetImageSource()
+    public Task<ImageSource> GetImageSource()
     {
-        if (ProfilePictureAddress.Length > 0)
-        {
-            string downloadAddress = await DatabaseManager.GetImageDownloadLink(ProfilePictureAddress);
-            Uri imageUri = new(downloadAddress);
-
-            return ImageSource.FromUri(imageUri);
-        }
-        else
-        {
-            return ImageSource.FromFile("logoshort.png");
-        }
+        return ImageSourceResolver.ResolveAsync(ProfilePictureAddress, "logoshort.png");
     }
 }

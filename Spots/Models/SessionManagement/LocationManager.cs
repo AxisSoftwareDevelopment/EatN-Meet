@@ -1,4 +1,6 @@
-﻿using Geohash;
+﻿using System.ComponentModel;
+
+using Geohash;
 using Plugin.Firebase.Firestore;
 
 using eatMeet.ResourceManager;
@@ -143,19 +145,48 @@ public static class LocationManager
     }
 }
 
-public class FirebaseLocation : IFirestoreObject
+public class FirebaseLocation : IFirestoreObject, INotifyPropertyChanged
 {
+    public event PropertyChangedEventHandler? PropertyChanged;
+
+    private string _Address = "";
     private double _Latitude = 0;
     private double _Longitude = 0;
 
     [FirestoreProperty(nameof(Address))]
-    public string Address { get; set; }
+    public string Address
+    {
+        get => _Address;
+        set
+        {
+            _Address = value;
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Address)));
+        }
+    }
 
     [FirestoreProperty(nameof(Latitude))]
-    public double Latitude { get; set; }
+    public double Latitude
+    {
+        get => _Latitude;
+        set
+        {
+            _Latitude = value;
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Latitude)));
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Geohash)));
+        }
+    }
 
     [FirestoreProperty(nameof(Longitude))]
-    public double Longitude { get; set;}
+    public double Longitude
+    {
+        get => _Longitude;
+        set
+        {
+            _Longitude = value;
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Longitude)));
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Geohash)));
+        }
+    }
 
     [FirestoreProperty(nameof(Geohash))]
     public List<string> Geohash

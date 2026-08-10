@@ -20,7 +20,13 @@ public partial class CV_DiscoverFeed : ContentView
     private double FilterSectionHeight = FILTER_SECTION_HEIGHT_MIN;
     private DisplayInfo displayInfo = DeviceDisplay.Current.MainDisplayInfo;
     private string[] ErrorLables = ["lbl_Error", "lbl_UnhandledError", "txt_LocationError_CouldntCalculateLocation", "lbl_Ok"];
-	public CV_DiscoverFeed()
+    private Dictionary<int, DiscoveryPageFilters.FILTER_AREA> _areaFilterByIndex = new()
+    {
+        { 0, DiscoveryPageFilters.FILTER_AREA.ONE_KM },
+        { 1, DiscoveryPageFilters.FILTER_AREA.THREE_KM },
+        { 2, DiscoveryPageFilters.FILTER_AREA.FIVE_KM }
+    };
+    public CV_DiscoverFeed()
 	{
         InitializeComponent();
 
@@ -238,7 +244,7 @@ public partial class CV_DiscoverFeed : ContentView
             : _radioClientsFilter.IsChecked ? DiscoveryPageFilters.FILTER_SUBJECT.CLIENTS : DiscoveryPageFilters.FILTER_SUBJECT.SPOT_PRAISES;
         DiscoveryPageFilters.FILTER_LOCATION locationSelected = _radioCurrentLoc.IsChecked ? DiscoveryPageFilters.FILTER_LOCATION.CURRENT
             : DiscoveryPageFilters.FILTER_LOCATION.SELECTED;
-        DiscoveryPageFilters.FILTER_AREA areaSelected = (DiscoveryPageFilters.FILTER_AREA)_PickerLocationOptions.SelectedIndex;
+        DiscoveryPageFilters.FILTER_AREA areaSelected = _areaFilterByIndex[_PickerLocationOptions.SelectedIndex];
         DiscoveryPageFilters.FILTER_TIME timeSelected = _radio1month.IsChecked ? DiscoveryPageFilters.FILTER_TIME.PAST_MONTH
             : _radio6month.IsChecked ? DiscoveryPageFilters.FILTER_TIME.PAST_6_MONTHS
             : _radio1year.IsChecked ? DiscoveryPageFilters.FILTER_TIME.PAST_YEAR

@@ -4,9 +4,12 @@
              x:Class="eatMeet.DiscoveryPage.CV_DiscoveryFeedDataTemplate">
     <Border Margin="5" StrokeShape="RoundRectangle 5" StrokeThickness="0">
         <StackLayout Orientation="Horizontal" BackgroundColor="{DynamicResource Secondary}" HorizontalOptions="FillAndExpand" >
-            <Border Margin="5" StrokeShape="RoundRectangle 5" StrokeThickness="0" HeightRequest="50" WidthRequest="50">
-                <Image x:Name="imgMainImage" Aspect="Fill" Source="{Binding MainImage}" BackgroundColor="{DynamicResource Primary}"/>
-            </Border>
+            <Grid>
+                <Border Margin="5" StrokeShape="RoundRectangle 5" StrokeThickness="0" HeightRequest="100" WidthRequest="100">
+                    <Image x:Name="imgMainImage" Aspect="Fill" Source="{Binding MainImage}" BackgroundColor="{DynamicResource Primary}"/>
+                </Border>
+                <ImageButton x:Name="imgLikeButton" IsVisible="False" HeightRequest="35" WidthRequest="35" Margin="5,0,5,5" HorizontalOptions="Start" VerticalOptions="End" Clicked="LikeButtonClicked"/>
+            </Grid>
             <StackLayout Orientation="Vertical" HorizontalOptions="FillAndExpand" Margin="5,5">
                 <StackLayout Orientation="Horizontal" HorizontalOptions="FillAndExpand">
                     <Label x:Name="lblMainName" Text="{Binding MainName}" FontSize="Medium" FontAttributes="Bold" TextColor="{DynamicResource SecondaryAccent}" MaxLines="2" HorizontalOptions="FillAndExpand"/>
@@ -15,7 +18,7 @@
                     </Border>
                 </StackLayout>
                 <Label x:Name="lblSecondaryName" Text="{Binding SecondaryName}" FontSize="Small" FontAttributes="Italic" HorizontalTextAlignment="End" TextColor="{DynamicResource Tertiary}" MaxLines="1"/>
-                <Label x:Name="lblDetail" FontSize="Micro" LineBreakMode="WordWrap" TextColor="{DynamicResource SecondaryAccent}" MaxLines="2"/>
+                <Label x:Name="lblDetail" FontSize="Small" LineBreakMode="WordWrap" TextColor="{DynamicResource SecondaryAccent}" MaxLines="2"/>
             </StackLayout>
         </StackLayout>
     </Border>

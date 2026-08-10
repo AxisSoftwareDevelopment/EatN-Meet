@@ -1,0 +1,223 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+	// ============================================
+	// HELPER FUNCTIONS
+	// ============================================
+
+	// Check if user is authenticated
+	function isSignedIn() {
+	  return request.auth != null;
+	}
+
+	// Check if user is the document owner
+	function isOwner(userId) {
+	  return isSignedIn() && request.auth.uid == userId;
+	}
+
+	// Check if email is verified
+	function isVerified() {
+	  return isSignedIn() && request.auth.token.email_verified == true;
+	}
+
+	// Validate string length
+	function isValidString(text, minLen, maxLen) {
+	  return text is string && text.size() >= minLen && text.size() <= maxLen;
+	}
+
+	// Check if only specific fields are being updated
+	function onlyUpdating(fields) {
+	  return request.resource.data.diff(resource.data).affectedKeys().hasOnly(fields);
+	}
+
+	// Check that a list field only had exactly the caller's own uid added or removed
+	// (used for Followers/Likes/TableMembers self-service list mutations)
+	function isValidSelfListChange(beforeList, afterList) {
+	  return (afterList.size() == beforeList.size() + 1
+			  && afterList.hasAll(beforeList)
+			  && afterList.hasAny([request.auth.uid]))
+		  || (afterList.size() == beforeList.size() - 1
+			  && beforeList.hasAll(afterList)
+			  && beforeList.hasAny([request.auth.uid]));
+	}
+
+	// ============================================
+	// USER DATA COLLECTION
+	// ============================================
+
+	match /UserData/{userId} {
+	  // Anyone can read user profiles (for discovery/following)
+	  allow read: if isSignedIn();
+
+	  // Only owner can create their profile (right after signup).
+	  // NOTE: email_verified is intentionally NOT required here - the profile
+	  // document is created immediately after CreateUserAsync, before the user
+	  // has had a chance to click the verification link. Requiring isVerified()
+	  // here would make account creation impossible.
+	  allow create: if isOwner(userId) 
+		&& request.resource.data.UserID == userId
+		&& request.resource.data.Email == request.auth.token.email;
+
+	  // Owner can update their own data (any field, immutable ones excluded)
+	  // OR another signed-in user can adjust LikesCount by exactly +/-1 (liking a praise)
+	  // OR another signed-in user can add/remove only their own uid to Followers (follow/unfollow)
+	  allow update: if (
+		  isOwner(userId)
+		  && isVerified()
+		  && request.resource.data.UserID == resource.data.UserID
+		  && request.resource.data.Email == resource.data.Email
+		)
+		|| (
+		  isSignedIn() && isVerified()
+		  && onlyUpdating(['LikesCount'])
+		  && (request.resource.data.LikesCount == resource.data.LikesCount + 1
+			  || request.resource.data.LikesCount == resource.data.LikesCount - 1)
+		)
+		|| (
+		  isSignedIn() && isVerified()
+		  && onlyUpdating(['Followers'])
+		  && isValidSelfListChange(resource.data.Followers, request.resource.data.Followers)
+		);
+
+	  // Users cannot delete their profiles (use Firebase Auth deletion)
+	  allow delete: if false;
+	}
+
+	// ============================================
+	// SPOTS COLLECTION
+	// ============================================
+
+	match /Spots/{spotId} {
+	  // Anyone can read spots (for discovery)
+	  allow read: if isSignedIn();
+
+	  // Authenticated users can create spots
+	  // NOTE: Spot_Firebase serializes the name field as "Name" (see [FirestoreProperty(nameof(Name))]
+	  // in Spot.cs), not "SpotName" - the field name must match what's actually written to Firestore.
+	  allow create: if isSignedIn() 
+		&& isVerified()
+		&& isValidString(request.resource.data.Name, 1, 100)
+		&& request.resource.data.PraiseCount == 1; // Initial count
+
+	  // Allow PraiseCount to be incremented by exactly 1 via transaction
+	  // OR allow editing the spot's own info fields (name/location/picture).
+	  // NOTE: Spot_Firebase has no owner/creator field, so info edits are
+	  // currently allowed for any signed-in, verified user. Add an OwnerID
+	  // field if you want to restrict this to the spot's creator.
+	  allow update: if isSignedIn() && isVerified()
+		&& (
+		  (onlyUpdating(['PraiseCount'])
+			&& request.resource.data.PraiseCount == resource.data.PraiseCount + 1)
+		  || (
+			onlyUpdating(['Name', 'Location', 'ProfilePictureAddress', 'SearchTerms'])
+			&& isValidString(request.resource.data.Name, 1, 100)
+		  )
+		);
+
+	  // Spots cannot be deleted directly (implement admin function if needed)
+	  allow delete: if false;
+	}
+
+	// ============================================
+	// PRAISES COLLECTION
+	// ============================================
+
+	match /Praises/{praiseId} {
+	  // Anyone can read praises
+	  allow read: if isSignedIn();
+
+	  // Users can create their own praises
+	  allow create: if isSignedIn() 
+		&& isVerified()
+		&& request.resource.data.AuthorID == request.auth.uid
+		&& isValidString(request.resource.data.Comment, 0, 1000)
+		&& request.resource.data.LikesCount == 0 // Start with 0 likes
+		&& request.resource.data.Likes.size() == 0; // Empty likes array
+
+	  // Only author can update their praise comment/picture
+	  // OR any signed-in user can like/unlike (Likes + LikesCount, self-uid only, +/-1 count)
+	  allow update: if (
+		  isOwner(resource.data.AuthorID)
+		  && onlyUpdating(['Comment', 'AttachedPictureAddress'])
+		)
+		|| (
+		  isSignedIn() && isVerified()
+		  && onlyUpdating(['Likes', 'LikesCount'])
+		  && isValidSelfListChange(resource.data.Likes, request.resource.data.Likes)
+		  && (request.resource.data.LikesCount == resource.data.LikesCount + 1
+			  || request.resource.data.LikesCount == resource.data.LikesCount - 1)
+		);
+
+	  // Only author can delete their praise
+	  allow delete: if isOwner(resource.data.AuthorID);
+	}
+
+	// ============================================
+	// TABLES COLLECTION
+	// ============================================
+
+	match /Tables/{tableId} {
+	  // Only table members can read
+	  allow read: if isSignedIn() 
+		&& request.auth.uid in resource.data.TableMembers;
+
+	  // Authenticated users can create tables
+	  allow create: if isSignedIn() 
+		&& isVerified()
+		&& request.resource.data.TableMembers.hasAny([request.auth.uid])
+		&& isValidString(request.resource.data.TableName, 1, 100);
+
+	  // Existing members can update OnlineMembers (sit/stand)
+	  // OR existing members can edit table info (name/picture)
+	  // OR existing members can update only their own MemberData entry (e.g. notification prefs)
+	  // OR any signed-in user can join/leave by adding/removing only their own uid in TableMembers
+	  allow update: if isSignedIn()
+		&& (
+		  (request.auth.uid in resource.data.TableMembers && onlyUpdating(['OnlineMembers']))
+		  || (
+			request.auth.uid in resource.data.TableMembers
+			&& onlyUpdating(['TableName', 'TablePictureAddress'])
+			&& isValidString(request.resource.data.TableName, 1, 100)
+		  )
+		  || (
+			request.auth.uid in resource.data.TableMembers
+			&& onlyUpdating(['MemberData'])
+			&& request.resource.data.MemberData.diff(resource.data.MemberData).affectedKeys().hasOnly([request.auth.uid])
+		  )
+		  || (
+			onlyUpdating(['TableMembers'])
+			&& isValidSelfListChange(resource.data.TableMembers, request.resource.data.TableMembers)
+		  )
+		);
+
+	  // Members can delete table if they're the last one
+	  allow delete: if isSignedIn()
+		&& request.auth.uid in resource.data.TableMembers
+		&& resource.data.TableMembers.size() == 1;
+	}
+
+	// ============================================
+	// NOTIFICATIONS COLLECTION
+	// ============================================
+
+	match /Notifications/{notificationId} {
+	  // Only owner can read their notifications
+	  allow read: if isSignedIn() 
+		&& resource.data.OwnerID == request.auth.uid;
+
+	  // Authenticated users can send notifications to others
+	  allow create: if isSignedIn() 
+		&& isVerified()
+		&& request.resource.data.OwnerID != request.auth.uid // Can't send to self
+		&& isValidString(request.resource.data.Type, 1, 50);
+
+	  // Notifications cannot be updated
+	  allow update: if false;
+
+	  // Only owner can delete their notifications
+	  allow delete: if isSignedIn() 
+		&& resource.data.OwnerID == request.auth.uid;
+	}
+  }
+}

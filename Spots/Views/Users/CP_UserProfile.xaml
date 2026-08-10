@@ -54,8 +54,8 @@
                                     <StackLayout Orientation="Vertical">
                                         <StackLayout Orientation="Horizontal" BackgroundColor="{DynamicResource Secondary}" HorizontalOptions="FillAndExpand" Margin="5,5">
                                             <Grid>
-                                                <Border StrokeShape="RoundRectangle 5" StrokeThickness="0" MinimumHeightRequest="125" MinimumWidthRequest="125" VerticalOptions="Start">
-                                                    <Image Source="{Binding SpotProfilePicture}"/>
+                                                <Border StrokeShape="RoundRectangle 5" StrokeThickness="0" MinimumHeightRequest="125" MinimumWidthRequest="125" MaximumHeightRequest="125" MaximumWidthRequest="125" VerticalOptions="Start">
+                                                    <Image Source="{Binding SpotProfilePicture}" Aspect="Center"/>
                                                 </Border>
                                                 <ImageButton Grid.Row="5" Grid.Column="0" Source="{Binding LikeSource}" HeightRequest="35" WidthRequest="35" Margin="5,0,5,5" HorizontalOptions="Start" VerticalOptions="End" Clicked="LikeButtonClicked"/>
                                             </Grid>

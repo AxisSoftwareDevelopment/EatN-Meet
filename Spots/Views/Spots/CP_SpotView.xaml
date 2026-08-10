@@ -37,8 +37,8 @@
                                     <StackLayout Orientation="Vertical">
                                         <StackLayout Orientation="Horizontal" BackgroundColor="{DynamicResource Secondary}" HorizontalOptions="FillAndExpand" Margin="5,5">
                                             <Grid>
-                                                <Border StrokeShape="RoundRectangle 5" StrokeThickness="0">
-                                                    <Image Grid.Column="0" Grid.Row="0" Source="{Binding SpotProfilePicture}" HeightRequest="125" WidthRequest="125" BackgroundColor="{DynamicResource Primary}"/>
+                                                <Border StrokeShape="RoundRectangle 5" StrokeThickness="0" HeightRequest="125" WidthRequest="125">
+                                                    <Image Grid.Column="0" Grid.Row="0" Source="{Binding SpotProfilePicture}" Aspect="Center" BackgroundColor="{DynamicResource Primary}"/>
                                                 </Border>
                                                 <ImageButton Grid.Row="5" Grid.Column="0" Source="{Binding LikeSource}" HeightRequest="35" WidthRequest="35" Margin="5,0,5,5" HorizontalOptions="Start" VerticalOptions="End" Clicked="LikeButtonClicked"/>
                                             </Grid>
@@ -63,7 +63,7 @@
             </StackLayout>
         </ScrollView>
         <StackLayout>
-            <Button x:Name="_btnWriteReview" Text="{DynamicResource lbl_WriteSpotReview}" Margin="35, 3, 35, 10" BackgroundColor="{DynamicResource Primary}" TextColor="{DynamicResource PrimaryAccent}" Clicked="WriteSpotReview"/>
+            <Button x:Name="_btnWriteReview" Text="{DynamicResource lbl_WriteSpotReview}" Margin="35, 5, 35, 5" BackgroundColor="{DynamicResource Primary}" TextColor="{DynamicResource PrimaryAccent}" Clicked="WriteSpotReview"/>
         </StackLayout>
     </StackLayout>
 

@@ -160,7 +160,7 @@ public partial class CP_UpdateSpotPraise : ContentPage
     {
         _lblBrand.Text = spotSelected.FullName;
         _SpotImage.Source = spotSelected.ProfilePictureSource;
-        MainSpotPraise = new("", SessionManager.CurrentSession?.Client?.UserID ?? "", SessionManager.CurrentSession?.Client?.FullName ?? "", spotSelected.SpotID, spotSelected.Name, DateTimeOffset.Now, spotPictureAddress: spotSelected.ProfilePictureAddress);
+        MainSpotPraise = new("", SessionManager.CurrentSession?.Client?.UserID ?? "", SessionManager.CurrentSession?.Client?.FullName ?? "", spotSelected.SpotID, spotSelected.Name, DateTimeOffset.Now, spotPictureAddress: spotSelected.ProfilePictureAddress, spotLocation: spotSelected.Location);
     }
 
     private async void _btnSave_Clicked(object? sender, EventArgs e)

@@ -1,6 +1,7 @@
 ﻿using Plugin.Firebase.Firestore;
 
 using eatMeet.Database;
+using eatMeet.Utilities;
 
 namespace eatMeet.Models
 {
@@ -74,17 +75,7 @@ namespace eatMeet.Models
 
         public async Task UpdateTablePicture(string address)
         {
-            if (address.Length > 0)
-            {
-                string downloadAddress = await DatabaseManager.GetImageDownloadLink(address);
-                Uri imageUri = new(downloadAddress);
-
-                TablePictureSource = ImageSource.FromUri(imageUri);
-            }
-            else
-            {
-                ImageSource.FromFile("logolong.png");
-            }
+            TablePictureSource = await ImageSourceResolver.ResolveAsync(address, "logolong.png");
         }
     }
 
@@ -140,19 +131,9 @@ namespace eatMeet.Models
                 : new Dictionary<string, MemberMetadata>();
         }
 
-        public async Task<ImageSource> GetImageSource()
+        public Task<ImageSource> GetImageSource()
         {
-            if (TablePictureAddress.Length > 0)
-            {
-                string downloadAddress = await DatabaseManager.GetImageDownloadLink(TablePictureAddress);
-                Uri imageUri = new(downloadAddress);
-
-                return ImageSource.FromUri(imageUri);
-            }
-            else
-            {
-                return ImageSource.FromFile("logolong.png");
-            }
+            return ImageSourceResolver.ResolveAsync(TablePictureAddress, "logolong.png");
         }
     }
 }

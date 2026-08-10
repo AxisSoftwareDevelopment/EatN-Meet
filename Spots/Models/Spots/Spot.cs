@@ -135,17 +135,7 @@ public class Spot : INotifyPropertyChanged
 
     public async Task UpdateProfilePicture(string firebaseAddress)
     {
-        if (firebaseAddress.Length > 0)
-        {
-            string downloadAddress = await DatabaseManager.GetImageDownloadLink(firebaseAddress);
-            Uri imageUri = new(downloadAddress);
-
-            ProfilePictureSource = ImageSource.FromUri(imageUri);
-        }
-        else
-        {
-            ProfilePictureSource = ImageSource.FromFile("logolong.png");
-        }
+        ProfilePictureSource = await ImageSourceResolver.ResolveAsync(firebaseAddress, "logolong.png");
     }
 }
 
@@ -224,18 +214,8 @@ public class Spot_Firebase
         return retVal.Concat(composedTerms).ToList();
     }
 
-    public async Task<ImageSource> GetImageSource()
+    public Task<ImageSource> GetImageSource()
     {
-        if (ProfilePictureAddress.Length > 0)
-        {
-            string downloadAddress = await DatabaseManager.GetImageDownloadLink(ProfilePictureAddress);
-            Uri imageUri = new(downloadAddress);
-
-            return ImageSource.FromUri(imageUri);
-        }
-        else
-        {
-            return ImageSource.FromFile("logolong.png");
-        }
+        return ImageSourceResolver.ResolveAsync(ProfilePictureAddress, "logolong.png");
     }
 }

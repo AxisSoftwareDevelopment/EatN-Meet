@@ -19,9 +19,26 @@ public static class DatabaseManager
     private const string COLLECTION_NOTIFICATIONS = "Notifications";
 
     #region Externalizing Storage Methods
+    /// <summary>
+    /// Resolves an image address into a usable download link.
+    /// The address may either be a Firebase Storage relative path (which needs to be
+    /// resolved into a download URL) or an already-resolved absolute URL provided by the
+    /// Google Places API (e.g. a "photoUri"). Absolute http(s) URLs are returned as-is.
+    /// </summary>
     public static Task<string> GetImageDownloadLink(string path)
     {
+        if (IsPlacesApiAddress(path))
+        {
+            return Task.FromResult(path);
+        }
+
         return FirebaseStorageManager.GetImageDownloadLink(path);
+    }
+
+    private static bool IsPlacesApiAddress(string path)
+    {
+        return Uri.TryCreate(path, UriKind.Absolute, out Uri? uri) &&
+            (uri.Scheme == Uri.UriSchemeHttp || uri.Scheme == Uri.UriSchemeHttps);
     }
 
     public static Task<string> SaveFile(string path, string fileName, ImageFile imageFile)
