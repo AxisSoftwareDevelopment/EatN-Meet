@@ -8,6 +8,7 @@ public partial class CV_MainFeed : ContentView
 {
     private readonly FeedContext<SpotPraise> CurrentFeedContext = new();
     private int _lastFetchedCount = 1; // To ensure initial fetchs
+    private bool _isNavigating;
 
 	public CV_MainFeed()
 	{
@@ -28,12 +29,24 @@ public partial class CV_MainFeed : ContentView
         _refreshView.IsRefreshing = true;
     }
 
-    private void _colFeed_SelectionChanged(object? sender, SelectionChangedEventArgs e)
+    private async void _colFeed_SelectionChanged(object? sender, SelectionChangedEventArgs e)
     {
-		if(e.CurrentSelection.Count > 0)
-		{
-            Navigation.PushAsync(new CP_SpotPraise((SpotPraise)e.CurrentSelection[0]));
-			_colFeed.SelectedItem = null;
+        if (_isNavigating || e.CurrentSelection.FirstOrDefault() is not SpotPraise praise)
+        {
+            return;
+        }
+
+        _isNavigating = true;
+        _colFeed.SelectedItem = null;
+
+        try
+        {
+            INavigation navigation = FP_MainShell.MainNavigation ?? Navigation;
+            await navigation.PushAsync(new CP_SpotPraise(praise));
+        }
+        finally
+        {
+            _isNavigating = false;
         }
     }
 
