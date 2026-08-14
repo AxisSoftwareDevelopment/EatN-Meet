@@ -6,12 +6,9 @@
              x:Class="eatMeet.CV_DiscoverFeed"
              BackgroundColor="{DynamicResource BackgroundGrey}">
 
-    <RefreshView x:Name="_refreshView" Margin="0,5,0,0">
-        <CollectionView x:Name="_colFeed" HorizontalOptions="FillAndExpand" HorizontalScrollBarVisibility="Never" VerticalScrollBarVisibility="Never"
-                        ItemsSource="{Binding ItemSource}" SelectionMode="Single">
-            <CollectionView.Header>
-                <Border Margin="5, 0, 5, 0" StrokeShape="RoundRectangle 5,5,5,5" HorizontalOptions="FillAndExpand" VerticalOptions="FillAndExpand" Background="{DynamicResource TertiaryDarker}">
-                    <StackLayout>
+    <Grid RowDefinitions="Auto,*">
+        <Border Grid.Row="0" Margin="5, 5, 5, 5" StrokeShape="RoundRectangle 5,5,5,5" HorizontalOptions="FillAndExpand" VerticalOptions="FillAndExpand" Background="{DynamicResource TertiaryDarker}">
+            <StackLayout>
                         <StackLayout x:Name="_FiltersHeaderBar" Orientation="Horizontal"  Margin="5" HorizontalOptions="FillAndExpand">
                             <Label Text="{DynamicResource lbl_FiltersHeader}" TextColor="{DynamicResource PrimaryAccent}" FontSize="Medium" FontAttributes="Bold" Margin="15, 2, 0, 2" HorizontalOptions="FillAndExpand"/>
                             <Image x:Name="_Filters_ExpandCollapse" Aspect="AspectFit" Source="iconupwhite.png" MaximumHeightRequest="25" Rotation="180" Margin="0, 0, 10, 0" HorizontalOptions="EndAndExpand"/>
@@ -63,17 +60,19 @@
                             </StackLayout>
                             <Button Text="{DynamicResource lbl_Apply}" FontAttributes="Bold" HorizontalOptions="EndAndExpand" BackgroundColor="{DynamicResource Primary}" TextColor="{DynamicResource PrimaryAccent}" Margin="10" Clicked="_btnApply_Clicked"/>
                         </StackLayout>
-                            
-                    </StackLayout>
-                </Border>
-            </CollectionView.Header>
+            </StackLayout>
+        </Border>
 
+        <RefreshView x:Name="_refreshView" Grid.Row="1" Margin="0,0,0,0">
+            <CollectionView x:Name="_colFeed" HorizontalOptions="FillAndExpand" HorizontalScrollBarVisibility="Never" VerticalScrollBarVisibility="Never"
+                            ItemsSource="{Binding ItemSource}" SelectionMode="Single">
             <CollectionView.ItemTemplate>
                 <DataTemplate>
                     <discoveryPage:CV_DiscoveryFeedDataTemplate/>
                 </DataTemplate>
             </CollectionView.ItemTemplate>
-        </CollectionView>
-    </RefreshView>
+            </CollectionView>
+        </RefreshView>
+    </Grid>
 
 </ContentView>

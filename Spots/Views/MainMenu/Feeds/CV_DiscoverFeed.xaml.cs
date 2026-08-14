@@ -162,7 +162,11 @@ public partial class CV_DiscoverFeed : ContentView
 
     private void _cvMiniMap_MapClicked(object? sender, EventArgs e)
     {
-        Navigation.PushAsync(new CP_MapLocationSelector(((Map)_cvMiniMap.Content).VisibleRegion, SelectedLocation?.Address?? "", SetSelectedLocation));
+        MapSpan mapSpan = ((Map)_cvMiniMap.Content).VisibleRegion ?? new MapSpan(new Location(
+            SelectedLocation?.Latitude ?? CurrentLocation?.Latitude ?? 0,
+            SelectedLocation?.Longitude ?? CurrentLocation?.Longitude ?? 0
+        ), 0.01, 0.01);
+        Navigation.PushAsync(new CP_MapLocationSelector(mapSpan, SelectedLocation?.Address?? "", SetSelectedLocation));
     }
 
     private void CV_DiscoverFeed_FiltersTapped(object? sender, TappedEventArgs e)
