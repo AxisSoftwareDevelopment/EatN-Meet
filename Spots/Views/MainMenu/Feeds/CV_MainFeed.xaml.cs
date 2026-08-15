@@ -41,8 +41,8 @@ public partial class CV_MainFeed : ContentView
 
         try
         {
-            INavigation navigation = FP_MainShell.MainNavigation ?? Navigation;
-            await navigation.PushAsync(new CP_SpotPraise(praise));
+            CP_SpotPraise praisePage = new(praise);
+            await Navigation.PushAsync(praisePage);
         }
         finally
         {

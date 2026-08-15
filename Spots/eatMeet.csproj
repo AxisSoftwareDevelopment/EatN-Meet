@@ -107,10 +107,10 @@
 	<!-- NuGets -->
 	<ItemGroup>
 		<PackageReference Include="geohash-dotnet" Version="2.3.0" />
-		<PackageReference Include="Microsoft.Maui.Controls" Version="10.0.41" />
-		<PackageReference Include="Microsoft.Maui.Controls.Compatibility" Version="10.0.41" />
+		<PackageReference Include="Microsoft.Maui.Controls" Version="10.0.90" />
+		<PackageReference Include="Microsoft.Maui.Controls.Compatibility" Version="10.0.90" />
 		<PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="10.0.3" />
-		<PackageReference Include="Microsoft.Maui.Controls.Maps" Version="10.0.41" />
+		<PackageReference Include="Microsoft.Maui.Controls.Maps" Version="10.0.90" />
 		<PackageReference Include="Plugin.Firebase" Version="4.0.0" />
 	</ItemGroup>
 
